@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>pong</title>
+    <!-- css書いてないから -->
+    <style>
+        * {
+            /* margin:boderの外側の余白 */
+            /* padding:borderの内側の余白 */
+            padding: 0;
+            margin: 0;
+        }
+        canvas {
+            /* 背景色 */
+            background: #eee;
+            display: block;
+            /* 画面中央に自動で */
+            margin: 0 auto;
+        }
+        </style>
+</head>
+<body>
+<canvas id="pongcanvas" width="600" height="450"></canvas>
+<!-- jsで書いた内容がこのキャンパス内で反映される -->
+<script src="js/pong.js"></script>
+</body>
+</html>
