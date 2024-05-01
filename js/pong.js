@@ -7,8 +7,8 @@ let state = 1;
 let ball = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    dx: 1,
-    dy: 1,
+    dx: getRandomBallSpeed(-3, 3),
+    dy: getRandomBallSpeed(-3, 3),
     Radius: 10,
 };
 //右
@@ -39,27 +39,41 @@ function drawPaddle(obj) {
     ctx.fill();
     ctx.closePath();
 }
+function getRandomBallSpeed(min, max) {
+    return Math.random() * (max - min) + min;
+}
+function handlePaddleCollision(paddle, paddleSide) {
+    if (ball.y > paddle.y && ball.y < paddle.y + paddle.Height) {
+        let distanceFromPaddleCenter = paddle.y + (paddle.Height / 2) - ball.y;
+        // 最大の反射角を45°に設定した場合
+        // paddleの大きさに依存した数値(1.2)なので、paddleを修正する場合にはここも修正が必要
+        // 角度 / paddleの大きさ で修正
+        let angleDegrees = distanceFromPaddleCenter * 1.2;
+        // π/180(ラジアン単位の1度)で割ることで変換
+        let angleRadians = angleDegrees * (Math.PI / 180);
+        let cosValue = Math.cos(angleRadians);
+        let sinValue = Math.sin(angleRadians);
+        // 左右で方向を逆に
+        let ballDirection = (paddleSide === "RIGHT") ? -1 : 1;
+        // 適当にスピードを決めてるが、これを変更できるようにすれば難易度調整できそう
+        let speed = getRandomBallSpeed(3, 6);
+        ball.dx = speed * ballDirection * cosValue;
+        ball.dy = speed * -sinValue;
+    } else {
+        state = 0;
+    }
+}
 function collisionDetection() {
     // この関数をpaddleに当たったかを判定する関数に修正する
     // canvasの左半分か右半分かで処理を分岐する
     // 左
     if (ball.x - ball.Radius < paddle2.Width) {
         // paddle2の幅の範囲内にballがあるかを確認する
-        if (ball.y > paddle2.y && ball.y < paddle2.y + paddle2.Height) {
-            ball.dx = -ball.dx;
-        }
-        else {
-            state = 0;
-        }
+        handlePaddleCollision(paddle2, "LEFT");
     }
     // 右
     else if (ball.x + ball.Radius > canvas.width - paddle1.Width) {
-        if (ball.y > paddle1.y && ball.y < paddle1.y + paddle1.Height) {
-            ball.dx = -ball.dx;
-        }
-        else {
-            state = 0;
-        }
+        handlePaddleCollision(paddle1, "RIGHT");
     }
 }
 function draw() {
@@ -104,8 +118,8 @@ function draw() {
         clearInterval(interval);
     }
     // ballの動きを変えるために修正
-    // ball.x += ball.dx;
-    // ball.y += ball.dy;
+    ball.x += ball.dx;
+    ball.y += ball.dy;
 }
 // 押されたとき
 document.addEventListener("keydown", keyDownHandler, false);
