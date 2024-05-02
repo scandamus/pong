@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -21,8 +21,12 @@
         </style>
 </head>
 <body>
-<canvas id="pongcanvas" width="600" height="450"></canvas>
-<!-- jsで書いた内容がこのキャンパス内で反映される -->
-<script src="js/pong.js"></script>
+    <textarea id="pong-log" cols="100" rows="20"></textarea><br>
+    <input id="pong-message-input" type="text" size="100"><br>
+    <input id="pong-message-submit" type="button" value="Send">
+    {{ room_name|json_script:"room-name" }}
+
+	<canvas id="pongcanvas" width="600" height="300"></canvas>
+    <script src="js/pong.js"></script>
 </body>
 </html>

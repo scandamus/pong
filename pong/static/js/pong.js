@@ -1,10 +1,35 @@
 // ノードを取得
+const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+const pongSocket = new WebSocket(
+    'ws://'
+    + window.location.host
+    + '/ws/pong/'
+    + roomName
+    + '/'
+);
+
+pongSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    document.querySelector('#pong-log').value = (data.message + '\n');
+};
+
+pongSocket.onclose = function(e) {
+    console.error('pong socket closed unexpectedly');
+};
+
+document.querySelector('#pong-message-input').focus();
+document.querySelector('#pong-message-input').onkeyup = function(e) {
+    if (e.key === 'Enter') {  // enter, return
+        document.querySelector('#pong-message-submit').click();
+    }
+};
 const canvas = document.getElementById("pongcanvas");
 // 2dの描画コンテキストにアクセスできるように
 // キャンバスに描画するために使うツール
 const ctx = canvas.getContext("2d");
 let state = 1;
-const startBallDirection = getBallDirectionAndRandomSpeed(getRandomInt(45, 90), choose([-1, 1]));
+const startBallDirection = getBallDirectionAndRandomSpeed(getRandomInt(30, 45), choose([-1, 1]));
 let ball = {
     x: canvas.width / 2,
     y: canvas.height / 2,
@@ -62,7 +87,7 @@ function getBallDirectionAndRandomSpeed(angleDegrees, directionMultiplier) {
     let cosValue = Math.cos(angleRadians);
     let sinValue = Math.sin(angleRadians);
     // 適当にスピードを決めてるが、これを変更できるようにすれば難易度調整できそう
-    let speed = getRandomArbitrary(3, 6);
+    let speed = getRandomArbitrary(3, 7);
     return {
         dx: speed * directionMultiplier * cosValue,
         dy: speed * -sinValue,
