@@ -31,6 +31,11 @@ class PongConsumer(WebsocketConsumer):
         paddle1 = text_data_json.get("paddle1")
         paddle2 = text_data_json.get("paddle2")
 
+        if text_data_json.get('message') == 'key_event':
+            key = text_data_json['key']
+            print(f"Key event received: {key}")  # コンソールにキーイベントを出力
+
+
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, {
             "type": "pong.message",
