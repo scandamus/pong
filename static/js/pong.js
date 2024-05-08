@@ -87,7 +87,7 @@ function getBallDirectionAndRandomSpeed(angleDegrees, directionMultiplier) {
     let cosValue = Math.cos(angleRadians);
     let sinValue = Math.sin(angleRadians);
     // 適当にスピードを決めてるが、これを変更できるようにすれば難易度調整できそう
-    let speed = getRandomArbitrary(3, 7);
+    let speed = getRandomArbitrary(1, 2);
     return {
         dx: speed * directionMultiplier * cosValue,
         dy: speed * -sinValue,
@@ -187,6 +187,9 @@ function keyDownHandler (e) {
     } else if (e.key === "s") {
         paddle2DownPressed = true;
     }
+
+    // send event to django websocket
+    sendEvent(e.key);
 }
 function keyUpHandler (e) {
     if (e.key === "ArrowUp") {
@@ -198,5 +201,20 @@ function keyUpHandler (e) {
     } else if (e.key === "s") {
         paddle2DownPressed = false;
     }
+
+    // send event to django websocket
+    sendEvent(e.key);
 }
 let interval = setInterval(draw, 10);
+
+function sendEvent(key) {
+    let json = {
+        message: 'key_event',
+        key: key
+    };
+    pongSocket.send(JSON.stringify(json));
+}
+
+pongSocket.onclose = function(e) {
+    console.error('Pong socket closed unexpectedly:', e.reason, 'Code:', e.code);
+};
