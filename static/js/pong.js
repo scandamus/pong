@@ -12,10 +12,16 @@ const pongSocket = new WebSocket(
 pongSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     document.querySelector('#pong-log').value = (data.message + '\n');
+    let paddle1 = data.paddle1;
+    console.log(paddle1)
 };
 
 pongSocket.onclose = function(e) {
     console.error('pong socket closed unexpectedly');
+};
+
+pongSocket.onclose = function(e) {
+    console.error('Pong socket closed unexpectedly:', e.reason, 'Code:', e.code);
 };
 
 document.querySelector('#pong-message-input').focus();
@@ -214,7 +220,3 @@ function sendEvent(key) {
     };
     pongSocket.send(JSON.stringify(json));
 }
-
-pongSocket.onclose = function(e) {
-    console.error('Pong socket closed unexpectedly:', e.reason, 'Code:', e.code);
-};

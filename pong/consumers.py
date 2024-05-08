@@ -57,4 +57,16 @@ class PongConsumer(WebsocketConsumer):
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             "message": message + f'\n{timestamp}\n\np2={paddle2}\n\nball={ball}\n\np1={paddle1}',
+            "paddle1": {
+                "x": 100,
+                "y": 50,
+                "Height": 75,
+                "Width": 10
+            },
+            "paddle2": {
+                "x": 10,
+                "y": 50,
+                "Height": 75,
+                "Width": 10
+            }
         }))
