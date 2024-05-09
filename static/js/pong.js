@@ -9,10 +9,9 @@ const pongSocket = new WebSocket(
     + '/'
 );
 
-pongSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    document.querySelector('#pong-log').value = (data.message + '\n');
-    updateGameObjects(data);
+pongSocket.onopen = function(e) {
+    console.log('WebSocket is now open:', pongSocket.readyState);
+    sendSocketOpen();
 };
 
 pongSocket.onclose = function(e) {
@@ -30,43 +29,6 @@ const canvas = document.getElementById("pongcanvas");
 // キャンバスに描画するために使うツール
 const ctx = canvas.getContext("2d");
 
-function updateGameObjects(data) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBall(data.ball);
-    drawPaddle(data.paddle1);
-    drawPaddle(data.paddle2);
-    if (!data.game_status) {
-        alert('GAME OVER');
-        // ここでゲームをリセットする処理を追加するか、ページをリロードする
-        // document.location.reload();
-    }
-}
-
-// let state = 1;
-// const startBallDirection = getBallDirectionAndRandomSpeed(getRandomInt(30, 45), choose([-1, 1]));
-// let ball = {
-//     x: canvas.width / 2,
-//     y: canvas.height / 2,
-//     dx: startBallDirection.dx,
-//     dy: startBallDirection.dy,
-//     // dx: 1,
-//     // dy: 1,
-//     Radius: 10,
-// };
-// //右
-// let paddle1 = {
-//     x: (canvas.width - 10),
-//     y: (canvas.height - 75) / 2,
-//     Height: 75,
-//     Width: 10,
-// };
-// // 左
-// let paddle2 = {
-//     x: 0,
-//     y: (canvas.height - 75) / 2,
-//     Height: 75,
-//     Width: 10,
-// };
 function drawBall(obj) {
     ctx.beginPath();
     ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
@@ -81,152 +43,66 @@ function drawPaddle(obj) {
     ctx.fill();
     ctx.closePath();
 }
-// function getRandomArbitrary(min, max) {
-//     return Math.random() * (max - min) + min;
-// }
-// function getRandomInt(min, max) {
-//     // ceil()は引数以上の最大の整数を返す
-//     min = Math.ceil(min);
-//     // floor()は引数以下の最大の整数を返す
-//     max = Math.floor(max);
-//     return Math.floor(getRandomArbitrary(min, max)); //The maximum is exclusive and the minimum is inclusive
-// }
-// function choose(choices) {
-//     let index = Math.floor(Math.random() * choices.length);
-//     return choices[index];
-// }
-// function getBallDirectionAndRandomSpeed(angleDegrees, directionMultiplier) {
-//     // π/180(ラジアン単位の1度)で割ることで変換
-//     let angleRadians = angleDegrees * (Math.PI / 180);
-//     let cosValue = Math.cos(angleRadians);
-//     let sinValue = Math.sin(angleRadians);
-//     // 適当にスピードを決めてるが、これを変更できるようにすれば難易度調整できそう
-//     let speed = getRandomArbitrary(1, 2);
-//     return {
-//         dx: speed * directionMultiplier * cosValue,
-//         dy: speed * -sinValue,
-//     }
-// }
-// function handlePaddleCollision(paddle, paddleSide) {
-//     if (ball.y > paddle.y && ball.y < paddle.y + paddle.Height) {
-//         let distanceFromPaddleCenter = paddle.y + (paddle.Height / 2) - ball.y;
-//         // 最大の反射角を45°に設定した場合
-//         // paddleの大きさに依存した数値(1.2)なので、paddleを修正する場合にはここも修正が必要
-//         // 角度 / paddleの大きさ で修正
-//         let angleDegrees = distanceFromPaddleCenter * 1.2;
-//         // 左右で方向を逆に
-//         let ballDirection = (paddleSide === "RIGHT") ? -1 : 1;
-//         ballDirection = getBallDirectionAndRandomSpeed(angleDegrees, ballDirection);
-//         ball.dx = ballDirection.dx;
-//         ball.dy = ballDirection.dy;
-//     } else {
-//         state = 0;
-//     }
-// }
-// function collisionDetection() {
-//     // この関数をpaddleに当たったかを判定する関数に修正する
-//     // canvasの左半分か右半分かで処理を分岐する
-//     // 左
-//     if (ball.x - ball.Radius < paddle2.Width) {
-//         // paddle2の幅の範囲内にballがあるかを確認する
-//         handlePaddleCollision(paddle2, "LEFT");
-//     }
-//     // 右
-//     else if (ball.x + ball.Radius > canvas.width - paddle1.Width) {
-//         handlePaddleCollision(paddle1, "RIGHT");
-//     }
-// }
-// function draw() {
-//     ctx.clearRect(0, 0, canvas.width, canvas.height);
-//     drawBall(ball);
-//     drawPaddle(paddle1);
-//     drawPaddle(paddle2);
-//     if (state === 1) {
-//         collisionDetection();
-//     }
-//     if (ball.y + ball.dy > canvas.height - ball.Radius ||
-//         ball.y + ball.dy < ball.Radius) {
-//         ball.dy = -ball.dy;
-//     }
-//     if (paddle1UpPressed) {
-//         paddle1.y -= 7;
-//         if (paddle1.y < 0) {
-//             paddle1.y = 0;
-//         }
-//     }
-//     if (paddle1DownPressed) {
-//         paddle1.y += 7;
-//         if (paddle1.y + paddle1.Height > canvas.height) {
-//             paddle1.y = canvas.height - paddle1.Height;
-//         }
-//     }
-//     if (paddle2UpPressed) {
-//         paddle2.y -= 7;
-//         if (paddle2.y < 0) {
-//             paddle2.y = 0;
-//         }
-//     }
-//     if (paddle2DownPressed) {
-//         paddle2.y += 7;
-//         if (paddle2.y + paddle2.Height > canvas.height) {
-//             paddle2.y = canvas.height - paddle2.Height;
-//         }
-//     }
-//     if (ball.x < ball.Radius || ball.x > canvas.width - ball.Radius) {
-//         alert('GAME OVER');
-//         document.location.reload();
-//         clearInterval(interval);
-//     }
-//     // ballの動きを変えるために修正
-//     ball.x += ball.dx;
-//     ball.y += ball.dy;
-// }
-// let interval = setInterval(draw, 10);
+
+function updateGameObjects(ball, paddle1, paddle2, game_status) {
+    console.log("Updating game objects...");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log("Canvas cleared");
+
+    console.log("Drawing ball at", ball.x, ball.y);
+    drawBall(ball);
+    console.log("Drawing paddle1 at", paddle1.x, paddle1.y);
+    drawPaddle(paddle1);
+    console.log("Drawing paddle2 at", paddle2.x, paddle2.y);
+    drawPaddle(paddle2);
+
+    if (!game_status) {
+        console.log("Game Over");
+        alert('GAME OVER');
+        // ここでゲームをリセットする処理を追加するか、ページをリロードする
+        // document.location.reload();
+    }
+}
 
 // 押されたとき
 document.addEventListener("keydown", keyDownHandler, false);
 // 離れたとき
 document.addEventListener("keyup", keyUpHandler, false);
-// 右
-// let paddle1UpPressed = false;
-// let paddle1DownPressed = false;
-// // 左
-// let paddle2UpPressed = false;
-// let paddle2DownPressed = false;
-function keyDownHandler (e) {
-    // if (e.key === "ArrowUp") {
-    //     paddle1UpPressed = true;
-    // } else if (e.key === "ArrowDown") {
-    //     paddle1DownPressed = true;
-    // } else if (e.key === "w") {
-    //     paddle2UpPressed = true;
-    // } else if (e.key === "s") {
-    //     paddle2DownPressed = true;
-    // }
 
+function keyDownHandler (e) {
     // send event to django websocket
-    sendEvent(e.key, true);
+    sendKeyEvent(e.key, true);
 }
 function keyUpHandler (e) {
-    // if (e.key === "ArrowUp") {
-    //     paddle1UpPressed = false;
-    // } else if (e.key === "ArrowDown") {
-    //     paddle1DownPressed = false;
-    // } else if (e.key === "w") {
-    //     paddle2UpPressed = false;
-    // } else if (e.key === "s") {
-    //     paddle2DownPressed = false;
-    // }
-
     // send event to django websocket
-    sendEvent(e.key, false );
+    sendKeyEvent(e.key, false );
 }
 
-function sendEvent(key, is_pressed) {
-    let json = {
+function sendKeyEvent(key, is_pressed) {
+    let data = {
         message: 'key_event',
         key: key,
-        pressed: is_pressed,
+        is_pressed: is_pressed,
     };
-    pongSocket.send(JSON.stringify(json));
+    pongSocket.send(JSON.stringify(data));
 }
+
+function sendSocketOpen() {
+    let data = {
+        message: 'socket_status',
+        status: true,
+    }
+    pongSocket.send(JSON.stringify(data));
+}
+
+pongSocket.onmessage = function(e) {
+    try {
+        const data = JSON.parse(e.data);
+        document.querySelector('#pong-log').value += (data.message + '\n');
+        console.log('received_data -> ', data);
+        console.log("updateGameObjects() called");
+        updateGameObjects(data.ball, data.paddle1, data.paddle2, data.game_status);
+    } catch (error) {
+        console.error('Error parsing message data:', error);
+    }
+};
