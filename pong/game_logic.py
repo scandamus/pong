@@ -6,7 +6,7 @@ def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier):
     angle_radians = angle_degrees * (math.pi / 180)
     cos_value = math.cos(angle_radians)
     sin_value = math.sin(angle_radians)
-    speed = random.randint(3, 4)
+    speed = random.randint(6, 8)
     return {
         "dx": speed * direction_multiplier * cos_value,
         "dy": speed * -sin_value,
@@ -21,7 +21,7 @@ class Paddle:
         self.width = width
 
     def move(self, direction, canvas_height):
-        speed = 7
+        speed = 10
         if direction == 'up':
             self.y -= speed
             if self.y < 0:
