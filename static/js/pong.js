@@ -71,11 +71,15 @@ document.addEventListener("keyup", keyUpHandler, false);
 
 function keyDownHandler (e) {
     // send event to django websocket
-    sendKeyEvent(e.key, true);
+    if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s") {
+        sendKeyEvent(e.key, true);
+    }
 }
 function keyUpHandler (e) {
     // send event to django websocket
-    sendKeyEvent(e.key, false );
+    if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s") {
+        sendKeyEvent(e.key, false);
+    }
 }
 
 function sendKeyEvent(key, is_pressed) {
