@@ -77,6 +77,7 @@ class PongConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, {
             # typeキーはgroup_send メソッド内で指定されるキーで、どのハンドラ関数をトリガするかを指定する
             "type": "pong.message",
+            # ここで二つのキーを渡すことでpong_message内で辞書としてアクセスできる
             "timestamp": dt.utcnow().isoformat(),
             "message": message,
         })
