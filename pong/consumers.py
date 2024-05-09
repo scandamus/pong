@@ -37,6 +37,9 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.accept()
 
             # send updated ball pos until game end
+            # クライアント側でonopenが発火したらループを開始する
+            # self.is_active = True
+            # await self.schedule_ball_update()
 
         except Exception as e:
             logger.error(f"Error connecting: {e}")
@@ -52,88 +55,69 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
+        print("message: ", message)
 
-        if message == 'socket_status':
-            status = text_data_json['status']
-            print(f"socket_status received: {status}")
-            # クライアント側でonopenが発火したらループを開始する
-            self.is_active = True
-            await self.schedule_ball_update()
+        # if message == 'socket_status':
+        #     status = text_data_json['status']
+        #     print(f"socket_status received: {status}")
+        #     # クライアント側でonopenが発火したらループを開始する
+        #     self.is_active = True
+        #     await self.schedule_ball_update()
         if message == 'key_event':
             key = text_data_json['key']
             is_pressed = text_data_json['is_pressed']
             print(f"Key event received: {key}" f"\tis_pressed: {is_pressed}")  # コンソールにキーイベントを出力
-            # キー入力によってパドルを操作
-            if is_pressed:
-                if key == "ArrowUp":
-                    self.paddle1.move("up", CANVAS_HEIGHT)
-                elif key == "ArrowDown":
-                    self.paddle1.move("down", CANVAS_HEIGHT)
-                elif key == "w":
-                    self.paddle2.move("up", CANVAS_HEIGHT)
-                elif key == "s":
-                    self.paddle2.move("down", CANVAS_HEIGHT)
 
-        # Send message to room group
-        await self.channel_layer.group_send(self.room_group_name, {
-            # typeキーはgroup_send メソッド内で指定されるキーで、どのハンドラ関数をトリガするかを指定する
-            "type": "pong.message",
-            # ここで二つのキーを渡すことでpong_message内で辞書としてアクセスできる
-            "timestamp": dt.utcnow().isoformat(),
-            "message": message,
-        })
+            # Send message to room group
+            await self.channel_layer.group_send(self.room_group_name, {
+                # typeキーはgroup_send メソッド内で指定されるキーで、どのハンドラ関数をトリガするかを指定する
+                "type": "pong.message",
+                # ここで二つのキーを渡すことでpong_message内で辞書としてアクセスできる
+                "timestamp": dt.utcnow().isoformat(),
+                "message": message,
+                "key": key,
+                "is_pressed": is_pressed,
+            })
 
     # Receive message from room group
     async def pong_message(self, event):
         timestamp = event["timestamp"]
         message = event["message"]
-        # ball = event["ball"]
-        # paddle1 = event["paddle1"]
-        # paddle2 = event["paddle2"]
+        key = event.get('key')
+        is_pressed = event.get('is_pressed', False)
+
+        # キー入力によってパドルを操作
+        if key and is_pressed:
+            if key == "ArrowUp":
+                self.paddle1.move("up", CANVAS_HEIGHT)
+            elif key == "ArrowDown":
+                self.paddle1.move("down", CANVAS_HEIGHT)
+            elif key == "w":
+                self.paddle2.move("up", CANVAS_HEIGHT)
+            elif key == "s":
+                self.paddle2.move("down", CANVAS_HEIGHT)
 
         # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            # "message": message + f'\n{timestamp}\n\np2={paddle2}\n\nball={ball}\n\np1={paddle1}',
-            "message": message,
-            "paddle1": {
-                "x": self.paddle1.x,
-                "y": self.paddle1.y,
-                "Height": self.paddle1.height,
-                "Width": self.paddle1.width
-            },
-            "paddle2": {
-                "x": self.paddle2.x,
-                "y": self.paddle2.y,
-                "Height": self.paddle2.height,
-                "Width": self.paddle2.width
-            },
-            "ball": {
-                "x": self.ball.x,
-                "y": self.ball.y,
-                "dx": self.ball.dx,
-                "dy": self.ball.dy,
-                "radius": self.ball.radius,
-            },
-            "game_status": True
-        }))
+        await self.send_game_data(True, message=message, timestamp=timestamp)
 
     async def schedule_ball_update(self):
         while self.is_active:
-            await asyncio.sleep(0.05)  # 50ミリ秒ごとに待機
+            await asyncio.sleep(5.05)  # 50ミリ秒ごとに待機
             game_status = await self.update_ball_pos()  # ボールの位置を更新し、ゲーム続行かどうかを判定
             if not game_status:
                 break  # ゲームオーバーならループを終了
 
     async def update_ball_pos(self):
         if not self.ball.move(self.paddle1, self.paddle2, CANVAS_WIDTH, CANVAS_HEIGHT):
-            await self.send_game_data(game_status=False)
+            await self.send_game_data(game_status=False, message="update_ball_pos", timestamp=dt.utcnow().isoformat())
             return False
         else:
-            await self.send_game_data(game_status=True)
+            await self.send_game_data(game_status=True, message="update_ball_pos", timestamp=dt.utcnow().isoformat())
             return True
 
-    async def send_game_data(self, game_status):
+    async def send_game_data(self, game_status, message, timestamp):
         await self.send(text_data=json.dumps({
+            "message": message + f'\n{timestamp}\n\n',
             "game_status": game_status,
             "ball": {
                 "x": self.ball.x,
