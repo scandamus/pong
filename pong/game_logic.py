@@ -6,7 +6,7 @@ def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier):
     angle_radians = angle_degrees * (math.pi / 180)
     cos_value = math.cos(angle_radians)
     sin_value = math.sin(angle_radians)
-    speed = random.randint(1, 2)
+    speed = random.randint(3, 4)
     return {
         "dx": speed * direction_multiplier * cos_value,
         "dy": speed * -sin_value,
@@ -40,13 +40,18 @@ class Ball:
         self.dx = tmp['dx']
         self.dy = tmp['dy']
         self.radius = radius
+        self.flag = True  # 衝突判定を  True: する   False: しない
 
     def move(self, paddle1, paddle2, canvas_width, canvas_height):
-        if not collision_detection(self, paddle1, paddle2, canvas_width):
-            return False
         if self.y + self.dy > canvas_height - self.radius or self.y + self.dy < self.radius:
             self.dy = -self.dy
-        self.x += self.dx
+        if self.flag:
+            if not collision_detection(self, paddle1, paddle2, canvas_width):
+                self.flag = False
+        if self.x - self.radius + self.dx < 0 or self.x + self.radius + self.dx > canvas_width:
+            return False
+        else:
+            self.x += self.dx
         self.y += self.dy
         return True
 
