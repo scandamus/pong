@@ -38,7 +38,7 @@ class PongConsumer(WebsocketConsumer):
         except Exception as e:
             logger.error(f"Error connecting: {e}")
 
-        # self.schedule_ball_update()
+        self.schedule_ball_update()
 
     def disconnect(self, close_code):
         # Leave room group
@@ -79,9 +79,6 @@ class PongConsumer(WebsocketConsumer):
             "type": "pong.message",
             "timestamp": dt.utcnow().isoformat(),
             "message": message,
-            "paddle1": self.paddle1,
-            "paddle2": self.paddle2,
-            "ball": self.ball,
         })
 
     # Receive message from room group
@@ -94,7 +91,8 @@ class PongConsumer(WebsocketConsumer):
 
         # Send message to WebSocket
         self.send(text_data=json.dumps({
-            "message": message + f'\n{timestamp}\n\np2={paddle2}\n\nball={ball}\n\np1={paddle1}',
+            # "message": message + f'\n{timestamp}\n\np2={paddle2}\n\nball={ball}\n\np1={paddle1}',
+            "message": message,
             "paddle1": {
                 "x": self.paddle1.x,
                 "y": self.paddle1.y,
