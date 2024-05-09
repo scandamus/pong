@@ -44,10 +44,11 @@ class Ball:
     def move(self, paddle1, paddle2, canvas_width, canvas_height):
         if not collision_detection(self, paddle1, paddle2, canvas_width):
             return False
-        if self.y + self.dy > canvas_height - self.radius or self.y + self.dy < 0:
+        if self.y + self.dy > canvas_height - self.radius or self.y + self.dy < self.radius:
             self.dy = -self.dy
         self.x += self.dx
         self.y += self.dy
+        return True
 
     def handle_paddle_collision(self, paddle, paddle_side):
         if paddle.y < self.y < paddle.y + paddle.height:
