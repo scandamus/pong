@@ -7,6 +7,7 @@ from datetime import datetime as dt
 from .game_logic import Paddle, Ball
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 CANVAS_WIDTH = 600
@@ -21,6 +22,7 @@ class PongConsumer(WebsocketConsumer):
         self.paddle1 = Paddle(CANVAS_WIDTH - 10, (CANVAS_HEIGHT - 75) / 2, 75, 10)
         self.paddle2 = Paddle(0, (CANVAS_HEIGHT - 75) / 2, 75, 10)
         self.ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 10)
+        self.is_active = False
 
     def connect(self):
         try:
@@ -33,45 +35,42 @@ class PongConsumer(WebsocketConsumer):
 
             self.accept()
 
-            # send init paddle and ball
-            self.send_game_data(True)
+            # send updated ball pos until game end
+
         except Exception as e:
             logger.error(f"Error connecting: {e}")
 
-        self.schedule_ball_update()
-
     def disconnect(self, close_code):
         # Leave room group
-        if hasattr(self, 'room_group_name'):
-            async_to_sync(self.channel_layer.group_discard)(
-                self.room_group_name, self.channel_name
-            )
-        else:
-            logger.warning("Disconnect called without a room_group_name set.")
+        self.is_active = False
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name, self.channel_name
+        )
 
     # Receive message from WebSocket
     def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
-        # ball = text_data_json.get("ball")
-        # paddle1 = text_data_json.get("paddle1")
-        # paddle2 = text_data_json.get("paddle2")
-        key = text_data_json['key']
 
-        if text_data_json.get('message') == 'key_event':
-            print(f"Key event received: {key}")  # コンソールにキーイベントを出力
-
-        # キー入力によってパドルを操作
+        # if message == 'socket_status':
+        #     status = text_data_json['status']
+        #     print(f"socket_status received: {status}")
+        #     # クライアント側でonopenが発火したらループを開始する
+        #     self.schedule_ball_update()
         if message == 'key_event':
-            if key == "ArrowUp":
-                self.paddle1.move("up", CANVAS_HEIGHT)
-            elif key == "ArrowDown":
-                self.paddle1.move("down", CANVAS_HEIGHT)
-            elif key == "w":
-                self.paddle2.move("up", CANVAS_HEIGHT)
-            elif key == "s":
-                self.paddle2.move("down", CANVAS_HEIGHT)
-
+            key = text_data_json['key']
+            is_pressed = text_data_json['is_pressed']
+            print(f"Key event received: {key}" f"\tis_pressed: {is_pressed}")  # コンソールにキーイベントを出力
+            # キー入力によってパドルを操作
+            if is_pressed:
+                if key == "ArrowUp":
+                    self.paddle1.move("up", CANVAS_HEIGHT)
+                elif key == "ArrowDown":
+                    self.paddle1.move("down", CANVAS_HEIGHT)
+                elif key == "w":
+                    self.paddle2.move("up", CANVAS_HEIGHT)
+                elif key == "s":
+                    self.paddle2.move("down", CANVAS_HEIGHT)
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(self.room_group_name, {
@@ -117,21 +116,22 @@ class PongConsumer(WebsocketConsumer):
         }))
 
     async def schedule_ball_update(self):
-        while True:
+        while self.is_active:
             await asyncio.sleep(0.05)  # 50ミリ秒ごとに待機
+            print('<  schedule_ball_update  >')
             game_status = await self.update_ball_pos()  # ボールの位置を更新し、ゲーム続行かどうかを判定
             if not game_status:
                 break  # ゲームオーバーならループを終了
 
     async def update_ball_pos(self):
         if not self.ball.move(self.paddle1, self.paddle2, CANVAS_WIDTH, CANVAS_HEIGHT):
-            self.send_game_data(game_status=False)
+            await self.send_game_data(game_status=False)
             return False
         else:
-            self.send_game_data(game_status=True)
+            await self.send_game_data(game_status=True)
             return True
 
-    def send_game_data(self, game_status):
+    async def send_game_data(self, game_status):
         self.send(text_data=json.dumps({
             "game_status": game_status,
             "ball": {
