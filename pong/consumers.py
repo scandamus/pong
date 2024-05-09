@@ -37,10 +37,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 
             await self.accept()
 
-            # send updated ball pos until game end
             # クライアント側でonopenが発火したらループを開始する
             self.is_active = True
-            # await self.schedule_ball_update()
             self.scheduled_task = asyncio.create_task(self.schedule_ball_update())
 
         except Exception as e:
@@ -49,6 +47,8 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         # Leave room group
         self.is_active = False
+        if self.scheduled_task:
+            self.scheduled_task.cancel()
         await self.channel_layer.group_discard(
             self.room_group_name, self.channel_name
         )
@@ -101,6 +101,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                 await self.update_ball_and_send_data()
         except asyncio.CancelledError:
             # タスクがキャンセルされたときのエラーハンドリング
+            # 今は特に書いていないのでpass
             pass
 
     async def update_ball_and_send_data(self):
