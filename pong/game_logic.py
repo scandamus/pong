@@ -28,7 +28,7 @@ class Paddle:
                 self.y = 0
         if direction == 'down':
             self.y += speed
-            if self.y + self.height < canvas_height:
+            if self.y + self.height > canvas_height:
                 self.y = canvas_height - self.height
 
 
