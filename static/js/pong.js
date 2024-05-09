@@ -45,16 +45,11 @@ function drawPaddle(obj) {
 }
 
 function updateGameObjects(ball, paddle1, paddle2, game_status) {
-    console.log("Updating game objects...");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    console.log("Canvas cleared");
 
-    console.log("Drawing ball at", ball.x, ball.y);
     drawBall(ball);
-    console.log("Drawing paddle1 at", paddle1.x, paddle1.y);
     // 右
     drawPaddle(paddle1);
-    console.log("Drawing paddle2 at", paddle2.x, paddle2.y);
     // 左
     drawPaddle(paddle2);
 
@@ -62,6 +57,7 @@ function updateGameObjects(ball, paddle1, paddle2, game_status) {
         console.log("Game Over");
         alert('GAME OVER');
         // ここでゲームをリセットする処理を追加するか、ページをリロードする
+        // document.location.reload();
         // document.location.reload();
     }
 }
