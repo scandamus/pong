@@ -24,6 +24,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.paddle2 = Paddle(0, (CANVAS_HEIGHT - 75) / 2, 75, 10)
         self.ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 10)
         self.is_active = False
+        self.scheduled_task = None
 
     async def connect(self):
         try:
@@ -38,8 +39,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 
             # send updated ball pos until game end
             # クライアント側でonopenが発火したらループを開始する
-            # self.is_active = True
+            self.is_active = True
             # await self.schedule_ball_update()
+            self.scheduled_task = asyncio.create_task(self.schedule_ball_update())
 
         except Exception as e:
             logger.error(f"Error connecting: {e}")
@@ -55,14 +57,6 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
-        print("message: ", message)
-
-        # if message == 'socket_status':
-        #     status = text_data_json['status']
-        #     print(f"socket_status received: {status}")
-        #     # クライアント側でonopenが発火したらループを開始する
-        #     self.is_active = True
-        #     await self.schedule_ball_update()
         if message == 'key_event':
             key = text_data_json['key']
             is_pressed = text_data_json['is_pressed']
@@ -101,19 +95,18 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send_game_data(True, message=message, timestamp=timestamp)
 
     async def schedule_ball_update(self):
-        while self.is_active:
-            await asyncio.sleep(5.05)  # 50ミリ秒ごとに待機
-            game_status = await self.update_ball_pos()  # ボールの位置を更新し、ゲーム続行かどうかを判定
-            if not game_status:
-                break  # ゲームオーバーならループを終了
+        try:
+            while self.is_active:
+                await asyncio.sleep(0.05)  # 50ミリ秒待機
+                await self.update_ball_and_send_data()
+        except asyncio.CancelledError:
+            # タスクがキャンセルされたときのエラーハンドリング
+            pass
 
-    async def update_ball_pos(self):
-        if not self.ball.move(self.paddle1, self.paddle2, CANVAS_WIDTH, CANVAS_HEIGHT):
-            await self.send_game_data(game_status=False, message="update_ball_pos", timestamp=dt.utcnow().isoformat())
-            return False
-        else:
-            await self.send_game_data(game_status=True, message="update_ball_pos", timestamp=dt.utcnow().isoformat())
-            return True
+    async def update_ball_and_send_data(self):
+        self.is_active = self.ball.move(self.paddle1, self.paddle2, CANVAS_WIDTH, CANVAS_HEIGHT)
+        timestamp = dt.utcnow().isoformat()
+        await self.send_game_data(game_status=self.is_active, message="update_ball_pos", timestamp=timestamp)
 
     async def send_game_data(self, game_status, message, timestamp):
         await self.send(text_data=json.dumps({
