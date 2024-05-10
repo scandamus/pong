@@ -19,17 +19,14 @@ class Paddle:
         self.y = y
         self.height = height
         self.width = width
+        self.speed = 0
 
     def move(self, direction, canvas_height):
-        speed = 10
-        if direction == 'up':
-            self.y -= speed
-            if self.y < 0:
-                self.y = 0
-        if direction == 'down':
-            self.y += speed
-            if self.y + self.height > canvas_height:
-                self.y = canvas_height - self.height
+        self.y += self.speed
+        if self.y < 0:
+            self.y = 0
+        if self.y + self.height > canvas_height:
+            self.y = canvas_height - self.height
 
 
 class Ball:

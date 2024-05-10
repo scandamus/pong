@@ -88,16 +88,25 @@ class PongConsumer(AsyncWebsocketConsumer):
         # キー入力によってパドルを操作
         if key and is_pressed:
             if key == "ArrowUp":
-                self.paddle1.move("up", CANVAS_HEIGHT)
+                self.paddle1.speed = -10
             elif key == "ArrowDown":
-                self.paddle1.move("down", CANVAS_HEIGHT)
+                self.paddle1.speed = 10
             elif key == "w":
-                self.paddle2.move("up", CANVAS_HEIGHT)
+                self.paddle2.speed = -10
             elif key == "s":
-                self.paddle2.move("down", CANVAS_HEIGHT)
+                self.paddle2.speed = 10
+        else:
+            if key == "ArrowUp":
+                self.paddle1.speed = 0
+            elif key == "ArrowDown":
+                self.paddle1.speed = 0
+            elif key == "w":
+                self.paddle2.speed = 0
+            elif key == "s":
+                self.paddle2.speed = 0
 
         # Send message to WebSocket
-        await self.send_game_data(True, message=message, timestamp=timestamp)
+        # await self.send_game_data(True, message=message, timestamp=timestamp)
 
     async def schedule_ball_update(self):
         try:
@@ -110,6 +119,8 @@ class PongConsumer(AsyncWebsocketConsumer):
             pass
 
     async def update_ball_and_send_data(self):
+        self.paddle1.move("", CANVAS_HEIGHT)
+        self.paddle2.move("", CANVAS_HEIGHT)
         self.is_active = self.ball.move(self.paddle1, self.paddle2, CANVAS_WIDTH, CANVAS_HEIGHT)
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "ball.message",
