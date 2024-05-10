@@ -16,15 +16,18 @@ CANVAS_HEIGHT = 300
 
 # 非同期通信を実現したいのでAsyncWebsocketConsumerクラスを継承
 class PongConsumer(AsyncWebsocketConsumer):
+    players = 0
+    scheduled_task = None
+    paddle1 = Paddle(CANVAS_WIDTH - 10, (CANVAS_HEIGHT - 75) / 2, 75, 10)
+    paddle2 = Paddle(0, (CANVAS_HEIGHT - 75) / 2, 75, 10)
+    ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 10)
+    is_active = False
+    ready = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.room_name = None
         self.room_group_name = None
-        self.paddle1 = Paddle(CANVAS_WIDTH - 10, (CANVAS_HEIGHT - 75) / 2, 75, 10)
-        self.paddle2 = Paddle(0, (CANVAS_HEIGHT - 75) / 2, 75, 10)
-        self.ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 10)
-        self.is_active = False
-        self.scheduled_task = None
 
     async def connect(self):
         try:
@@ -39,7 +42,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 
             # クライアント側でonopenが発火したらループを開始する
             self.is_active = True
-            self.scheduled_task = asyncio.create_task(self.schedule_ball_update())
+            if not self.ready:
+                self.ready = True
+                self.scheduled_task = asyncio.create_task(self.schedule_ball_update())
 
         except Exception as e:
             logger.error(f"Error connecting: {e}")
@@ -74,11 +79,11 @@ class PongConsumer(AsyncWebsocketConsumer):
             })
 
     # Receive message from room group
-    async def pong_message(self, event):
-        timestamp = event["timestamp"]
-        message = event["message"]
-        key = event.get('key')
-        is_pressed = event.get('is_pressed', False)
+    async def pong_message(self, data):
+        timestamp = data["timestamp"]
+        message = data["message"]
+        key = data.get('key')
+        is_pressed = data.get('is_pressed', False)
 
         # キー入力によってパドルを操作
         if key and is_pressed:
@@ -106,8 +111,16 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def update_ball_and_send_data(self):
         self.is_active = self.ball.move(self.paddle1, self.paddle2, CANVAS_WIDTH, CANVAS_HEIGHT)
-        timestamp = dt.utcnow().isoformat()
-        await self.send_game_data(game_status=self.is_active, message="update_ball_pos", timestamp=timestamp)
+        await self.channel_layer.group_send(self.room_group_name, {
+            "type": "ball.message",
+            "message": "update_ball_pos",
+            "timestamp": dt.utcnow().isoformat(),
+        })
+
+    async def ball_message(self, data):
+        message = data["message"]
+        timestamp = data["timestamp"]
+        await self.send_game_data(game_status=self.is_active, message=message, timestamp=timestamp)
 
     async def send_game_data(self, game_status, message, timestamp):
         await self.send(text_data=json.dumps({
