@@ -57,8 +57,7 @@ function updateGameObjects(ball, paddle1, paddle2, game_status) {
         console.log("Game Over");
         alert('GAME OVER');
         // ここでゲームをリセットする処理を追加するか、ページをリロードする
-        // document.location.reload();
-        // document.location.reload();
+        document.location.reload();
     }
 }
 
