@@ -1,5 +1,5 @@
 // ノードを取得
-const roomName = JSON.parse(document.getElementById('room-name').textContent);
+const roomName = 'test';
 
 const pongSocket = new WebSocket(
     'ws://'
@@ -15,15 +15,20 @@ pongSocket.onopen = function(e) {
 };
 
 pongSocket.onclose = function(e) {
-    console.error('pong socket closed unexpectedly', e.reason, 'Code:', e.code);
-};
-
-document.querySelector('#pong-message-input').focus();
-document.querySelector('#pong-message-input').onkeyup = function(e) {
-    if (e.key === 'Enter') {  // enter, return
-        document.querySelector('#pong-message-submit').click();
+    // 1000は正常終了
+    if (e.code === 1000) {
+        console.log('WebSocket closed normally.');
+    } else {
+        console.error('pong socket closed unexpectedly', 'Reason:', e.reason, 'Code:', e.code);
     }
 };
+
+// document.querySelector('#pong-message-input').focus();
+// document.querySelector('#pong-message-input').onkeyup = function(e) {
+//     if (e.key === 'Enter') {  // enter, return
+//         document.querySelector('#pong-message-submit').click();
+//     }
+// };
 const canvas = document.getElementById("pongcanvas");
 // 2dの描画コンテキストにアクセスできるように
 // キャンバスに描画するために使うツール
@@ -31,7 +36,7 @@ const ctx = canvas.getContext("2d");
 
 function drawBall(obj) {
     ctx.beginPath();
-    ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+    ctx.rect(obj.x, obj.y, obj.size, obj.size)
     ctx.fillStyle = '#0095DD';
     ctx.fill();
     ctx.closePath();
@@ -99,10 +104,13 @@ function sendSocketOpen() {
 pongSocket.onmessage = function(e) {
     try {
         const data = JSON.parse(e.data);
-        document.querySelector('#pong-log').value += (data.message + '\n');
+        // document.querySelector('#pong-log').value += (data.message + '\n');
         console.log('received_data -> ', data);
-        console.log("updateGameObjects() called");
-        updateGameObjects(data.ball, data.paddle1, data.paddle2, data.game_status);
+        console.log('RIGHT_PADDLE: ', data.right_paddle.score, '  LEFT_PADDLE: ', data.left_paddle.score);if (data.ball) {
+            updateGameObjects(data.ball, data.right_paddle, data.left_paddle, data.game_status);
+        } else {
+            console.error('Ball data is missing in the received message.');
+        }
     } catch (error) {
         console.error('Error parsing message data:', error);
     }
