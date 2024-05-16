@@ -1,4 +1,5 @@
 // ノードを取得
+//const roomName = JSON.parse(document.getElementById('room-name').textContent);
 const roomName = 'test';
 
 const pongSocket = new WebSocket(
@@ -34,35 +35,60 @@ const canvas = document.getElementById("pongcanvas");
 // キャンバスに描画するために使うツール
 const ctx = canvas.getContext("2d");
 
+function drawBackground() {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+function drawLineDash() {
+    ctx.beginPath();
+    ctx.setLineDash([15, 15]);
+    ctx.lineWidth = 15;
+    ctx.strokeStyle = '#808080FF';
+    ctx.moveTo(325, 0);
+    ctx.lineTo(325, 450);
+    ctx.stroke();
+    ctx.closePath();
+}
+function drawScore(left_paddle, right_paddle) {
+    ctx.font = '48px "Courier New"';
+    ctx.textAlign = "center";
+    ctx.fillStyle = '#808080FF';
+    ctx.fillText(`${left_paddle.score}      ${right_paddle.score}`, canvas.width / 2, 50);
+}
 function drawBall(obj) {
     ctx.beginPath();
     ctx.rect(obj.x, obj.y, obj.size, obj.size)
-    ctx.fillStyle = '#0095DD';
+    ctx.fillStyle = '#808080FF';
     ctx.fill();
     ctx.closePath();
 }
 function drawPaddle(obj) {
     ctx.beginPath();
     ctx.rect(obj.x, obj.y, obj.width, obj.height);
-    ctx.fillStyle = '#0095DD';
+    ctx.fillStyle = '#808080FF';
     ctx.fill();
     ctx.closePath();
 }
-
-function updateGameObjects(ball, paddle1, paddle2, game_status) {
+function updateGameObjects(data) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 背景色
+    drawBackground();
+    // 中央の波線
+    drawLineDash();
+    // スコア
+    drawScore(data.left_paddle, data.right_paddle);
 
-    drawBall(ball);
+    drawBall(data.ball);
     // 右
-    drawPaddle(paddle1);
+    drawPaddle(data.right_paddle);
     // 左
-    drawPaddle(paddle2);
+    drawPaddle(data.left_paddle);
 
-    if (!game_status) {
+    if (!data.game_status) {
         console.log("Game Over");
         alert('GAME OVER');
         // ここでゲームをリセットする処理を追加するか、ページをリロードする
-        document.location.reload();
+        // document.location.reload();
     }
 }
 
@@ -106,11 +132,8 @@ pongSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         // document.querySelector('#pong-log').value += (data.message + '\n');
         console.log('received_data -> ', data);
-        console.log('RIGHT_PADDLE: ', data.right_paddle.score, '  LEFT_PADDLE: ', data.left_paddle.score);if (data.ball) {
-            updateGameObjects(data.ball, data.right_paddle, data.left_paddle, data.game_status);
-        } else {
-            console.error('Ball data is missing in the received message.');
-        }
+        console.log('RIGHT_PADDLE: ', data.right_paddle.score, '  LEFT_PADDLE: ', data.left_paddle.score);
+        updateGameObjects(data);
     } catch (error) {
         console.error('Error parsing message data:', error);
     }
