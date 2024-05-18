@@ -15,11 +15,11 @@ def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier):
 
 
 class Paddle:
-    def __init__(self, x, y, thickness, width):
+    def __init__(self, x, y, thickness, length):
         self.x = x
         self.y = y
         self.thickness = thickness
-        self.width = width
+        self.length = length
         self.speed = 0
         self.score = 0
 
@@ -82,7 +82,7 @@ class Ball:
         if collision_with_paddle1:
             self.x = paddle1.x - self.size
         elif collision_with_paddle2:
-            self.x = paddle2.x + paddle2.width
+            self.x = paddle2.x + paddle2.length
         else:
             self.x += self.dx
         self.y += self.dy
@@ -93,11 +93,11 @@ class Ball:
         next_x = self.x + self.dx
         next_y = self.y + self.dy
 
-        if paddle_side == "RIGHT" and paddle.x <= next_x + self.size <= paddle.x + paddle.width:
+        if paddle_side == "RIGHT" and paddle.x <= next_x + self.size <= paddle.x + paddle.length:
             if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.thickness:
                 self.reflect_ball(paddle, paddle_side)
                 return True
-        elif paddle_side == "LEFT" and paddle.x <= next_x <= paddle.x + paddle.width:
+        elif paddle_side == "LEFT" and paddle.x <= next_x <= paddle.x + paddle.length:
             if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.thickness:
                 self.reflect_ball(paddle, paddle_side)
                 return True
