@@ -5,7 +5,7 @@
 const pongSocket = new WebSocket(
     'ws://'
     + window.location.host
-    + '/ws/pong/'
+    + '/ws/multipong/'
     + roomName
     + '/'
 );
@@ -166,5 +166,3 @@ pongSocket.onmessage = function(e) {
         console.error('Error parsing message data:', error);
     }
 };
-
-console.log("OK");
