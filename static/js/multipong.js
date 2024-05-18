@@ -30,7 +30,7 @@ pongSocket.onclose = function(e) {
 //         document.querySelector('#pong-message-submit').click();
 //     }
 // };
-const canvas = document.getElementById("pongcanvas");
+const canvas = document.getElementById("multipongcanvas");
 // 2dの描画コンテキストにアクセスできるように
 // キャンバスに描画するために使うツール
 const ctx = canvas.getContext("2d");
