@@ -15,10 +15,10 @@ def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier):
 
 
 class Paddle:
-    def __init__(self, x, y, height, width):
+    def __init__(self, x, y, thickness, width):
         self.x = x
         self.y = y
-        self.height = height
+        self.thickness = thickness
         self.width = width
         self.speed = 0
         self.score = 0
@@ -27,8 +27,8 @@ class Paddle:
         self.y += self.speed
         if self.y < 0:
             self.y = 0
-        if self.y + self.height > CANVAS_HEIGHT:
-            self.y = CANVAS_HEIGHT - self.height
+        if self.y + self.thickness > CANVAS_HEIGHT:
+            self.y = CANVAS_HEIGHT - self.thickness
 
     def increment_score(self):
         self.score += 1
@@ -94,21 +94,21 @@ class Ball:
         next_y = self.y + self.dy
 
         if paddle_side == "RIGHT" and paddle.x <= next_x + self.size <= paddle.x + paddle.width:
-            if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.height:
+            if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.thickness:
                 self.reflect_ball(paddle, paddle_side)
                 return True
         elif paddle_side == "LEFT" and paddle.x <= next_x <= paddle.x + paddle.width:
-            if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.height:
+            if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.thickness:
                 self.reflect_ball(paddle, paddle_side)
                 return True
         return False
 
     def reflect_ball(self, paddle, paddle_side):
-        distance_from_paddle_center = (paddle.y + (paddle.height / 2)) - self.y
+        distance_from_paddle_center = (paddle.y + (paddle.thickness / 2)) - self.y
         # 最大の反射角を45°に設定した場合
         # paddleの大きさに依存した数値(1.2)なので、paddleを修正する場合にはここも修正が必要
         # 角度 / paddleの大きさ で修正
-        normalize = REFLECTION_ANGLE / (paddle.height / 2)
+        normalize = REFLECTION_ANGLE / (paddle.thickness / 2)
         angle_degrees = distance_from_paddle_center * normalize
         # 左右で方向を逆に
         ball_direction = 1 if paddle_side == "LEFT" else -1
