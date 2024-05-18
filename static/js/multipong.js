@@ -54,23 +54,23 @@ function drawCornerLine(line_width, size) {
 
     // 右上
     ctx.beginPath();
-    ctx.moveTo(canvas001.width - size - padding, line_width + padding);
-    ctx.lineTo(canvas001.width - line_width - padding, line_width + padding);
-    ctx.lineTo(canvas001.width - line_width - padding, size + padding);
+    ctx.moveTo(canvas.width - size - padding, line_width + padding);
+    ctx.lineTo(canvas.width - line_width - padding, line_width + padding);
+    ctx.lineTo(canvas.width - line_width - padding, size + padding);
     ctx.stroke();
 
     // 左下
     ctx.beginPath();
-    ctx.moveTo(size + padding, canvas001.height - line_width - padding);
-    ctx.lineTo(line_width + padding, canvas001.height - line_width - padding);
-    ctx.lineTo(line_width + padding, canvas001.height - size - padding);
+    ctx.moveTo(size + padding, canvas.height - line_width - padding);
+    ctx.lineTo(line_width + padding, canvas.height - line_width - padding);
+    ctx.lineTo(line_width + padding, canvas.height - size - padding);
     ctx.stroke();
 
     // 右下
     ctx.beginPath();
-    ctx.moveTo(canvas001.width - size - padding, canvas001.height - line_width - padding);
-    ctx.lineTo(canvas001.width - line_width - padding, canvas001.height - line_width - padding);
-    ctx.lineTo(canvas001.width - line_width - padding, canvas001.height - size - padding);
+    ctx.moveTo(canvas.width - size - padding, canvas.height - line_width - padding);
+    ctx.lineTo(canvas.width - line_width - padding, canvas.height - line_width - padding);
+    ctx.lineTo(canvas.width - line_width - padding, canvas.height - size - padding);
     ctx.stroke();
 }
 function drawScore(left_paddle, right_paddle) {
@@ -88,7 +88,7 @@ function drawBall(obj) {
 }
 function drawPaddle(obj) {
     ctx.beginPath();
-    ctx.rect(obj.x, obj.y, obj.width, obj.height);
+    ctx.rect(obj.x, obj.y, obj.length, obj.thickness);
     ctx.fillStyle = '#808080FF';
     ctx.fill();
     ctx.closePath();
