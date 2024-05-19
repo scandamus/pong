@@ -183,6 +183,11 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
     lower_paddle = Paddle((CANVAS_WIDTH_MULTI / 2) - (PADDLE_LENGTH / 2), CANVAS_HEIGHT_MULTI - PADDLE_THICKNESS,
                           PADDLE_THICKNESS, PADDLE_LENGTH, 'horizontal')
     ball = Ball(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2, BALL_SIZE)
+    # TODO:paddleのスコアの設定方法をいい感じに変える
+    right_paddle.score = 10
+    left_paddle.score = 10
+    upper_paddle.score = 10
+    lower_paddle.score = 10
     ready = False
     game_continue = False
 
@@ -305,7 +310,7 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
         self.left_paddle.move_for_multiple()
         self.upper_paddle.move_for_multiple()
         self.lower_paddle.move_for_multiple()
-        game_continue = self.ball.move(self.right_paddle, self.left_paddle)
+        game_continue = self.ball.move_for_multiple(self.right_paddle, self.left_paddle, self.upper_paddle, self.lower_paddle)
         # game_continue = False
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "ball.message",
