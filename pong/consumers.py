@@ -1,11 +1,11 @@
 import json
 import asyncio
 
-from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer
 from datetime import datetime as dt
 from .game_logic import Paddle, Ball
-from .consts import CANVAS_WIDTH, CANVAS_HEIGHT, PADDLE_LENGTH, PADDLE_THICKNESS, PADDING, BALL_SIZE
+from .consts import (CANVAS_WIDTH, CANVAS_HEIGHT, PADDLE_LENGTH, PADDLE_THICKNESS, PADDING,
+                     BALL_SIZE, CANVAS_WIDTH_MULTI, CANVAS_HEIGHT_MULTI)
 
 import logging
 
@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 # 非同期通信を実現したいのでAsyncWebsocketConsumerクラスを継承
 class PongConsumer(AsyncWebsocketConsumer):
     scheduled_task = None
-    right_paddle = Paddle(CANVAS_WIDTH - PADDLE_LENGTH - PADDING, (CANVAS_HEIGHT - PADDLE_THICKNESS) / 2, \
-                          PADDLE_THICKNESS, PADDLE_LENGTH)
-    left_paddle = Paddle(PADDING, (CANVAS_HEIGHT - PADDLE_THICKNESS) / 2, PADDLE_THICKNESS, PADDLE_LENGTH)
+    right_paddle = Paddle(CANVAS_WIDTH - PADDLE_THICKNESS - PADDING, (CANVAS_HEIGHT - PADDLE_LENGTH) / 2,
+                          PADDLE_LENGTH, PADDLE_THICKNESS)
+    left_paddle = Paddle(PADDING, (CANVAS_HEIGHT - PADDLE_LENGTH) / 2, PADDLE_LENGTH, PADDLE_THICKNESS)
     ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, BALL_SIZE)
     ready = False
     game_continue = False
@@ -174,11 +174,15 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 class MultiPongConsumer(AsyncWebsocketConsumer):
     scheduled_task = None
-    right_paddle = Paddle(CANVAS_WIDTH - PADDLE_LENGTH - PADDING, (CANVAS_HEIGHT - PADDLE_THICKNESS) / 2, PADDLE_THICKNESS, PADDLE_LENGTH)
-    left_paddle = Paddle(PADDING, (CANVAS_HEIGHT - PADDLE_THICKNESS) / 2, PADDLE_THICKNESS, PADDLE_LENGTH)
-    # upper_paddle = Paddle((CANVAS_WIDTH / 2) - (PADDLE_LENGTH / 2), PADDLE_LENGTH, PADDLE_THICKNESS)
-    # lower_paddle = Paddle()
-    ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, BALL_SIZE)
+    right_paddle = Paddle(CANVAS_WIDTH_MULTI - PADDLE_THICKNESS, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2),
+                          PADDLE_LENGTH, PADDLE_THICKNESS, 'vertical')
+    left_paddle = Paddle(0, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2), PADDLE_LENGTH,
+                         PADDLE_THICKNESS, 'vertical')
+    upper_paddle = Paddle((CANVAS_WIDTH_MULTI / 2) - (PADDLE_LENGTH / 2), 0, PADDLE_THICKNESS,
+                          PADDLE_LENGTH, 'horizontal')
+    lower_paddle = Paddle((CANVAS_WIDTH_MULTI / 2) - (PADDLE_LENGTH / 2), CANVAS_HEIGHT_MULTI - PADDLE_THICKNESS,
+                          PADDLE_THICKNESS, PADDLE_LENGTH, 'horizontal')
+    ball = Ball(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2, BALL_SIZE)
     ready = False
     game_continue = False
 
@@ -248,19 +252,35 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
                 self.right_paddle.speed = -10
             elif key == "ArrowDown":
                 self.right_paddle.speed = 10
+            elif key == "ArrowLeft":
+                self.upper_paddle.speed = -10
+            elif key == "ArrowRight":
+                self.upper_paddle.speed = 10
             elif key == "w":
                 self.left_paddle.speed = -10
             elif key == "s":
                 self.left_paddle.speed = 10
+            elif key == "a":
+                self.lower_paddle.speed = -10
+            elif key == "d":
+                self.lower_paddle.speed = 10
         else:
             if key == "ArrowUp":
                 self.right_paddle.speed = 0
             elif key == "ArrowDown":
                 self.right_paddle.speed = 0
+            elif key == "ArrowLeft":
+                self.upper_paddle.speed = 0
+            elif key == "ArrowRight":
+                self.upper_paddle.speed = 0
             elif key == "w":
                 self.left_paddle.speed = 0
             elif key == "s":
                 self.left_paddle.speed = 0
+            elif key == "a":
+                self.lower_paddle.speed = 0
+            elif key == "d":
+                self.lower_paddle.speed = 0
 
     async def schedule_ball_update(self):
         self.game_continue = True
@@ -281,9 +301,12 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
             pass
 
     async def update_ball_and_send_data(self):
-        self.right_paddle.move()
-        self.left_paddle.move()
+        self.right_paddle.move_for_multiple()
+        self.left_paddle.move_for_multiple()
+        self.upper_paddle.move_for_multiple()
+        self.lower_paddle.move_for_multiple()
         game_continue = self.ball.move(self.right_paddle, self.left_paddle)
+        # game_continue = False
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "ball.message",
             "message": "update_ball_pos",

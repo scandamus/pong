@@ -42,35 +42,36 @@ function drawBackground() {
 function drawCornerLine(line_width, size) {
     ctx.lineWidth = line_width;
     ctx.lineJoin = 'miter';
-    const padding = line_width * 2;
     ctx.lineCap = 'butt'
+    ctx.strokeStyle = '#808080FF';
+    const offset = line_width / 2;
 
     // 左上
     ctx.beginPath();
-    ctx.moveTo(size + padding, line_width + padding);
-    ctx.lineTo(line_width + padding, line_width + padding);
-    ctx.lineTo(line_width + padding, size + padding);
+    ctx.moveTo(size + offset, offset);
+    ctx.lineTo(offset, offset);
+    ctx.lineTo(offset, size + offset);
     ctx.stroke();
 
     // 右上
     ctx.beginPath();
-    ctx.moveTo(canvas.width - size - padding, line_width + padding);
-    ctx.lineTo(canvas.width - line_width - padding, line_width + padding);
-    ctx.lineTo(canvas.width - line_width - padding, size + padding);
+    ctx.moveTo(canvas.width - size - offset, offset);
+    ctx.lineTo(canvas.width - offset, offset);
+    ctx.lineTo(canvas.width - offset, size + offset);
     ctx.stroke();
 
     // 左下
     ctx.beginPath();
-    ctx.moveTo(size + padding, canvas.height - line_width - padding);
-    ctx.lineTo(line_width + padding, canvas.height - line_width - padding);
-    ctx.lineTo(line_width + padding, canvas.height - size - padding);
+    ctx.moveTo(size + offset, canvas.height - offset);
+    ctx.lineTo(offset, canvas.height - offset);
+    ctx.lineTo(offset, canvas.height - size - offset);
     ctx.stroke();
 
     // 右下
     ctx.beginPath();
-    ctx.moveTo(canvas.width - size - padding, canvas.height - line_width - padding);
-    ctx.lineTo(canvas.width - line_width - padding, canvas.height - line_width - padding);
-    ctx.lineTo(canvas.width - line_width - padding, canvas.height - size - padding);
+    ctx.moveTo(canvas.width - size - offset, canvas.height - offset);
+    ctx.lineTo(canvas.width - offset, canvas.height - offset);
+    ctx.lineTo(canvas.width - offset, canvas.height - size - offset);
     ctx.stroke();
 }
 function drawScore(left_paddle, right_paddle) {
@@ -114,7 +115,8 @@ function updateGameObjects(data) {
 
     if (!data.game_status) {
         console.log("Game Over");
-        alert('GAME OVER');
+        // alert('GAME OVER');
+        console.log('GAME OVER');
         // ここでゲームをリセットする処理を追加するか、ページをリロードする
         // document.location.reload();
     }

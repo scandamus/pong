@@ -1,6 +1,7 @@
 import random
 import math
-from .consts import CANVAS_WIDTH, CANVAS_HEIGHT, REFLECTION_ANGLE
+from .consts import (CANVAS_WIDTH, CANVAS_HEIGHT, REFLECTION_ANGLE,
+                     CORNER_BLOCK_SIZE, CANVAS_WIDTH_MULTI, CANVAS_HEIGHT_MULTI)
 
 
 def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier):
@@ -15,20 +16,35 @@ def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier):
 
 
 class Paddle:
-    def __init__(self, x, y, thickness, length):
+    def __init__(self, x, y, thickness, length, orientation=None):
         self.x = x
         self.y = y
         self.thickness = thickness
         self.length = length
         self.speed = 0
         self.score = 0
+        self.orientation = orientation
 
     def move(self):
         self.y += self.speed
         if self.y < 0:
             self.y = 0
-        if self.y + self.thickness > CANVAS_HEIGHT:
+        elif self.y + self.thickness > CANVAS_HEIGHT:
             self.y = CANVAS_HEIGHT - self.thickness
+
+    def move_for_multiple(self):
+        if self.orientation == 'horizontal':
+            self.x += self.speed
+            if self.x < CORNER_BLOCK_SIZE:
+                self.x = CORNER_BLOCK_SIZE
+            elif CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE < self.x + self.length:
+                self.x = CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE - self.length
+        elif self.orientation == 'vertical':
+            self.y += self.speed
+            if self.y < CORNER_BLOCK_SIZE:
+                self.y = CORNER_BLOCK_SIZE
+            elif CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE < self.y + self.thickness:
+                self.y = CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE - self.thickness
 
     def increment_score(self):
         self.score += 1
