@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 class PongConsumer(AsyncWebsocketConsumer):
     scheduled_task = None
     right_paddle = Paddle(CANVAS_WIDTH - PADDLE_THICKNESS - PADDING, (CANVAS_HEIGHT - PADDLE_LENGTH) / 2,
-                          PADDLE_LENGTH, PADDLE_THICKNESS)
-    left_paddle = Paddle(PADDING, (CANVAS_HEIGHT - PADDLE_LENGTH) / 2, PADDLE_LENGTH, PADDLE_THICKNESS)
+                          PADDLE_THICKNESS, PADDLE_LENGTH)
+    left_paddle = Paddle(PADDING, (CANVAS_HEIGHT - PADDLE_LENGTH) / 2, PADDLE_THICKNESS, PADDLE_LENGTH)
     ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, BALL_SIZE)
     ready = False
     game_continue = False
@@ -174,6 +174,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 class MultiPongConsumer(AsyncWebsocketConsumer):
     scheduled_task = None
+    # horizontal -> 横向き    vertical -> 縦向き
     right_paddle = Paddle(CANVAS_WIDTH_MULTI - PADDLE_THICKNESS, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2),
                           PADDLE_LENGTH, PADDLE_THICKNESS, 'vertical')
     left_paddle = Paddle(0, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2), PADDLE_LENGTH,
