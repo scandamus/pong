@@ -99,11 +99,11 @@ function updateGameObjects(data) {
     // 背景色
     drawBackground();
     // 四隅の枠を生成
-    drawCornerLine(15, 15*8);
+    // drawCornerLine(15, 15*8);
     // スコア
     // drawScore(data.left_paddle, data.right_paddle);
     //
-    // drawBall(data.ball);
+    drawBall(data.ball);
     // // 右
     // drawPaddle(data.right_paddle);
     // // 左

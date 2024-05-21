@@ -311,8 +311,8 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
         # self.left_paddle.move_for_multiple()
         self.upper_paddle.move_for_multiple()
         self.lower_paddle.move_for_multiple()
-        # game_continue = self.ball.move_for_multiple(self.right_paddle, self.left_paddle, self.upper_paddle, self.lower_paddle)
-        game_continue = False
+        game_continue = self.ball.move_for_multiple(None, None, self.upper_paddle, self.lower_paddle)
+        # game_continue = True
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "ball.message",
             "message": "update_ball_pos",

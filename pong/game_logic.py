@@ -51,16 +51,24 @@ class Paddle:
     def move_for_multiple(self):
         if self.orientation == 'horizontal':
             self.x += self.speed
-            if self.x < CORNER_BLOCK_SIZE:
-                self.x = CORNER_BLOCK_SIZE
-            elif CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE < self.x + self.length:
-                self.x = CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE - self.length
+            if self.x < 0:
+                self.x = 0
+            elif CANVAS_HEIGHT_MULTI < self.x + self.length:
+                self.x = CANVAS_HEIGHT_MULTI - self.length
+            # if self.x < CORNER_BLOCK_SIZE:
+            #     self.x = CORNER_BLOCK_SIZE
+            # elif CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE < self.x + self.length:
+            #     self.x = CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE - self.length
         elif self.orientation == 'vertical':
             self.y += self.speed
-            if self.y < CORNER_BLOCK_SIZE:
-                self.y = CORNER_BLOCK_SIZE
-            elif CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE < self.y + self.thickness:
-                self.y = CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE - self.thickness
+            if self.y < 0:
+                self.y = 0
+            elif self.y + self.length > CANVAS_HEIGHT:
+                self.y = CANVAS_HEIGHT - self.length
+            # if self.y < CORNER_BLOCK_SIZE:
+            #     self.y = CORNER_BLOCK_SIZE
+            # elif CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE < self.y + self.thickness:
+            #     self.y = CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE - self.thickness
 
     def increment_score(self):
         self.score += 1
@@ -116,8 +124,53 @@ class Ball:
             self.x = paddle2.x + paddle2.thickness
         else:
             self.x += self.dx
-        self.y += self.dy
+        # y座標の操作
+        if self.y + self.dy < 0:
+            self.y = 0
+            self.dy -= self.dy
+        elif CANVAS_HEIGHT < self.y + self.size:
+            self.y = CANVAS_HEIGHT - self.size
+            self.dy -= self.dy
+        else:
+            self.y += self.dy
+        return True
 
+    def move_for_multiple(self, right_paddle, left_paddle, upper_paddle, lower_paddle):
+        collision_with_upper_paddle = False
+        collision_with_lower_paddle = False
+        if self.dy < 0:
+            collision_with_upper_paddle = self.collision_detection(upper_paddle, "UPPER")
+            if collision_with_upper_paddle:
+                self.y = upper_paddle.y + self.size
+        elif 0 < self.dy:
+            collision_with_lower_paddle = self.collision_detection(lower_paddle, "LOWER")
+            if collision_with_lower_paddle:
+                self.y = upper_paddle.y
+        # 上の壁を超えているか
+        if self.y + self.size + self.dy < 0:
+            upper_paddle.decrement_score()
+            self.reset(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2)
+            return upper_paddle.score > 0
+        elif CANVAS_HEIGHT_MULTI < self.y + self.dy:
+            lower_paddle.decrement_score()
+            self.reset(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2)
+            return lower_paddle.score > 0
+        # y座標の操作
+        if collision_with_upper_paddle:
+            self.y = upper_paddle.y + upper_paddle.thickness
+        elif collision_with_lower_paddle:
+            self.y = lower_paddle.y - self.size
+        else:
+            self.y += self.dy
+        # x座標の操作
+        if self.x + self.dx < 0:
+            self.x = 0
+            self.dx = -self.dx
+        elif CANVAS_WIDTH_MULTI < self.x + self.size + self.dx:
+            self.x = CANVAS_WIDTH_MULTI - self.size
+            self.dx = -self.dx
+        else:
+            self.x += self.dx
         return True
 
     def collision_detection(self, paddle, paddle_side):
@@ -132,17 +185,31 @@ class Ball:
             if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.length:
                 self.reflect_ball(paddle, paddle_side)
                 return True
+        elif paddle_side == "UPPER" and paddle.y <= next_y <= paddle.y + paddle.thickness:
+            if paddle.x <= next_x and next_x + self.size <= paddle.x + paddle.length:
+                self.reflect_ball(paddle, paddle_side)
+                return True
+        elif paddle_side == "LOWER" and paddle.y <= next_y + self.size <= paddle.y + paddle.thickness:
+            if paddle.x <= next_x and next_x + self.size <= paddle.x + paddle.length:
+                self.reflect_ball(paddle, paddle_side)
+                return True
         return False
 
     def reflect_ball(self, paddle, paddle_side):
-        distance_from_paddle_center = (paddle.y + (paddle.length / 2)) - self.y
-        # 最大の反射角を45°に設定した場合
-        # paddleの大きさに依存した数値(1.2)なので、paddleを修正する場合にはここも修正が必要
-        # 角度 / paddleの大きさ で修正
         normalize = REFLECTION_ANGLE / (paddle.length / 2)
-        angle_degrees = distance_from_paddle_center * normalize
-        # 左右で方向を逆に
-        ball_direction = 1 if paddle_side == "LEFT" else -1
-        new_direction = get_ball_direction_and_random_speed(angle_degrees, ball_direction)
+        if paddle_side == "RIGHT" or paddle_side == "LEFT":
+            distance_from_paddle_center = (paddle.y + (paddle.length / 2)) - self.y
+            # 最大の反射角を45°に設定した場合
+            # paddleの大きさに依存した数値(1.2)なので、paddleを修正する場合にはここも修正が必要
+            # 角度 / paddleの大きさ で修正
+            angle_degrees = distance_from_paddle_center * normalize
+            # 左右で方向を逆に
+            ball_direction = 1 if paddle_side == "LEFT" else -1
+            new_direction = get_ball_direction_and_random_speed(angle_degrees, ball_direction)
+        else:
+            distance_from_paddle_center = (paddle.x + (paddle.length / 2)) - self.x
+            angle_degrees = distance_from_paddle_center * normalize
+            ball_direction = 1 if paddle_side == "UPPER" else -1
+            new_direction = get_ball_direction_and_random_speed(angle_degrees, ball_direction, "horizontal")
         self.dx = new_direction["dx"]
         self.dy = new_direction["dy"]
