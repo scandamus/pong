@@ -24,11 +24,19 @@ def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier, ori
 
 
 class Paddle:
-    def __init__(self, x, y, thickness, length, orientation=None):
+    # 第三引数:horizontal->横の長さ   第四引数:vertical->縦の長さ   第五引数:orientation->paddleの移動方向
+    def __init__(self, x, y, horizontal, vertical, orientation='vertical'):
         self.x = x
         self.y = y
-        self.thickness = thickness
-        self.length = length
+        # 垂直方向のpaddleは厚さが横,長さが縦
+        # 垂直方向のpaddleは厚さが縦,長さが横
+        # これによって変数名でより視覚的にpaddleを管理できるように(二人対戦のときはデフォルトでvertical)
+        if orientation == 'vertical':
+            self.thickness = horizontal
+            self.length = vertical
+        elif orientation == 'horizontal':
+            self.thickness = vertical
+            self.length = horizontal
         self.speed = 0
         self.score = 0
         self.orientation = orientation
