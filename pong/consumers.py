@@ -153,15 +153,15 @@ class PongConsumer(AsyncWebsocketConsumer):
             "right_paddle": {
                 "x": self.right_paddle.x,
                 "y": self.right_paddle.y,
-                "length": self.right_paddle.length,
-                "thickness": self.right_paddle.thickness,
+                "horizontal": self.right_paddle.thickness,
+                "vertical": self.right_paddle.length,
                 "score": self.right_paddle.score,
             },
             "left_paddle": {
                 "x": self.left_paddle.x,
                 "y": self.left_paddle.y,
-                "length": self.left_paddle.length,
-                "thickness": self.left_paddle.thickness,
+                "horizontal": self.left_paddle.thickness,
+                "vertical": self.left_paddle.length,
                 "score": self.left_paddle.score,
             },
         }))
@@ -175,18 +175,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 class MultiPongConsumer(AsyncWebsocketConsumer):
     scheduled_task = None
     # horizontal -> 横向き    vertical -> 縦向き
-    # right_paddle = Paddle(CANVAS_WIDTH_MULTI - PADDLE_THICKNESS, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2),
-    #                       PADDLE_LENGTH, PADDLE_THICKNESS, 'vertical')
-    # left_paddle = Paddle(0, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2), PADDLE_LENGTH,
-    #                      PADDLE_THICKNESS, 'vertical')
+    right_paddle = Paddle(CANVAS_WIDTH_MULTI - PADDLE_THICKNESS, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2),
+                          PADDLE_THICKNESS, PADDLE_LENGTH, 'vertical')
+    left_paddle = Paddle(0, (CANVAS_HEIGHT_MULTI / 2) - (PADDLE_LENGTH / 2), PADDLE_THICKNESS,
+                         PADDLE_LENGTH, 'vertical')
     upper_paddle = Paddle((CANVAS_WIDTH_MULTI / 2) - (PADDLE_LENGTH / 2), 0, PADDLE_LENGTH,
                           PADDLE_THICKNESS, 'horizontal')
     lower_paddle = Paddle((CANVAS_WIDTH_MULTI / 2) - (PADDLE_LENGTH / 2), CANVAS_HEIGHT_MULTI - PADDLE_THICKNESS,
                           PADDLE_LENGTH, PADDLE_THICKNESS, 'horizontal')
     ball = Ball(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2, BALL_SIZE)
     # TODO:paddleのスコアの設定方法をいい感じに変える
-    # right_paddle.score = 10
-    # left_paddle.score = 10
+    right_paddle.score = 10
+    left_paddle.score = 10
     upper_paddle.score = 10
     lower_paddle.score = 10
     ready = False
@@ -254,35 +254,35 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
 
         # キー入力によってパドルを操作
         if key and is_pressed:
-            # if key == "ArrowUp":
-            #     self.right_paddle.speed = -10
-            # elif key == "ArrowDown":
-            #     self.right_paddle.speed = 10
+            if key == "ArrowUp":
+                self.right_paddle.speed = -10
+            elif key == "ArrowDown":
+                self.right_paddle.speed = 10
             if key == "ArrowLeft":
                 self.upper_paddle.speed = -10
             elif key == "ArrowRight":
                 self.upper_paddle.speed = 10
-            # elif key == "w":
-            #     self.left_paddle.speed = -10
-            # elif key == "s":
-            #     self.left_paddle.speed = 10
+            elif key == "w":
+                self.left_paddle.speed = -10
+            elif key == "s":
+                self.left_paddle.speed = 10
             elif key == "a":
                 self.lower_paddle.speed = -10
             elif key == "d":
                 self.lower_paddle.speed = 10
         else:
-            # if key == "ArrowUp":
-            #     self.right_paddle.speed = 0
-            # elif key == "ArrowDown":
-            #     self.right_paddle.speed = 0
+            if key == "ArrowUp":
+                self.right_paddle.speed = 0
+            elif key == "ArrowDown":
+                self.right_paddle.speed = 0
             if key == "ArrowLeft":
                 self.upper_paddle.speed = 0
             elif key == "ArrowRight":
                 self.upper_paddle.speed = 0
-            # elif key == "w":
-            #     self.left_paddle.speed = 0
-            # elif key == "s":
-            #     self.left_paddle.speed = 0
+            elif key == "w":
+                self.left_paddle.speed = 0
+            elif key == "s":
+                self.left_paddle.speed = 0
             elif key == "a":
                 self.lower_paddle.speed = 0
             elif key == "d":
@@ -307,11 +307,11 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
             pass
 
     async def update_ball_and_send_data(self):
-        # self.right_paddle.move_for_multiple()
-        # self.left_paddle.move_for_multiple()
+        self.right_paddle.move_for_multiple()
+        self.left_paddle.move_for_multiple()
         self.upper_paddle.move_for_multiple()
         self.lower_paddle.move_for_multiple()
-        game_continue = self.ball.move_for_multiple(None, None, self.upper_paddle, self.lower_paddle)
+        game_continue = self.ball.move_for_multiple(self.right_paddle, self.left_paddle, self.upper_paddle, self.lower_paddle)
         # game_continue = True
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "ball.message",
@@ -336,32 +336,32 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
                 "dy": self.ball.dy,
                 "size": self.ball.size,
             },
-            # "right_paddle": {
-            #     "x": self.right_paddle.x,
-            #     "y": self.right_paddle.y,
-            #     "length": self.right_paddle.length,
-            #     "thickness": self.right_paddle.thickness,
-            #     "score": self.right_paddle.score,
-            # },
-            # "left_paddle": {
-            #     "x": self.left_paddle.x,
-            #     "y": self.left_paddle.y,
-            #     "length": self.left_paddle.length,
-            #     "thickness": self.left_paddle.thickness,
-            #     "score": self.left_paddle.score,
-            # },
+            "right_paddle": {
+                "x": self.right_paddle.x,
+                "y": self.right_paddle.y,
+                "horizontal": self.right_paddle.thickness,
+                "vertical": self.right_paddle.length,
+                "score": self.right_paddle.score,
+            },
+            "left_paddle": {
+                "x": self.left_paddle.x,
+                "y": self.left_paddle.y,
+                "horizontal": self.left_paddle.thickness,
+                "vertical": self.left_paddle.length,
+                "score": self.left_paddle.score,
+            },
             "upper_paddle": {
                 "x": self.upper_paddle.x,
                 "y": self.upper_paddle.y,
-                "length": self.upper_paddle.length,
-                "thickness": self.upper_paddle.thickness,
+                "horizontal": self.upper_paddle.length,
+                "vertical": self.upper_paddle.thickness,
                 "score": self.upper_paddle.score,
             },
             "lower_paddle": {
                 "x": self.lower_paddle.x,
                 "y": self.lower_paddle.y,
-                "length": self.lower_paddle.length,
-                "thickness": self.lower_paddle.thickness,
+                "horizontal": self.lower_paddle.length,
+                "vertical": self.lower_paddle.thickness,
                 "score": self.lower_paddle.score,
             },
         }))

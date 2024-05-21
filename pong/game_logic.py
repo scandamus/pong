@@ -63,8 +63,8 @@ class Paddle:
             self.y += self.speed
             if self.y < 0:
                 self.y = 0
-            elif self.y + self.length > CANVAS_HEIGHT:
-                self.y = CANVAS_HEIGHT - self.length
+            elif self.y + self.length > CANVAS_HEIGHT_MULTI:
+                self.y = CANVAS_HEIGHT_MULTI - self.length
             # if self.y < CORNER_BLOCK_SIZE:
             #     self.y = CORNER_BLOCK_SIZE
             # elif CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE < self.y + self.thickness:
@@ -136,18 +136,20 @@ class Ball:
         return True
 
     def move_for_multiple(self, right_paddle, left_paddle, upper_paddle, lower_paddle):
-        collision_with_upper_paddle = False
-        collision_with_lower_paddle = False
-        if self.dy < 0:
-            collision_with_upper_paddle = self.collision_detection(upper_paddle, "UPPER")
-            if collision_with_upper_paddle:
-                self.y = upper_paddle.y + self.size
-        elif 0 < self.dy:
-            collision_with_lower_paddle = self.collision_detection(lower_paddle, "LOWER")
-            if collision_with_lower_paddle:
-                self.y = upper_paddle.y
-        # 上の壁を超えているか
-        if self.y + self.size + self.dy < 0:
+        collision_with_right_paddle = self.collision_detection(right_paddle, "RIGHT")
+        collision_with_left_paddle = self.collision_detection(left_paddle, "LEFT")
+        collision_with_upper_paddle = self.collision_detection(upper_paddle, "UPPER")
+        collision_with_lower_paddle = self.collision_detection(lower_paddle, "LOWER")
+        # 壁を超えているか
+        if CANVAS_WIDTH_MULTI < self.x + self.dx:
+            right_paddle.decrement_score()
+            self.reset(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2)
+            return right_paddle.score > 0
+        elif self.x + self.size + self.dx < 0:
+            left_paddle.decrement_score()
+            self.reset(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2)
+            return left_paddle.score > 0
+        elif self.y + self.size + self.dy < 0:
             upper_paddle.decrement_score()
             self.reset(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2)
             return upper_paddle.score > 0
@@ -163,12 +165,10 @@ class Ball:
         else:
             self.y += self.dy
         # x座標の操作
-        if self.x + self.dx < 0:
-            self.x = 0
-            self.dx = -self.dx
-        elif CANVAS_WIDTH_MULTI < self.x + self.size + self.dx:
-            self.x = CANVAS_WIDTH_MULTI - self.size
-            self.dx = -self.dx
+        if collision_with_right_paddle:
+            self.x = right_paddle.x - self.size
+        elif collision_with_left_paddle:
+            self.x = left_paddle.thickness
         else:
             self.x += self.dx
         return True
@@ -186,11 +186,11 @@ class Ball:
                 self.reflect_ball(paddle, paddle_side)
                 return True
         elif paddle_side == "UPPER" and paddle.y <= next_y <= paddle.y + paddle.thickness:
-            if paddle.x <= next_x and next_x + self.size <= paddle.x + paddle.length:
+            if paddle.x <= next_x + self.size and next_x <= paddle.x + paddle.length:
                 self.reflect_ball(paddle, paddle_side)
                 return True
         elif paddle_side == "LOWER" and paddle.y <= next_y + self.size <= paddle.y + paddle.thickness:
-            if paddle.x <= next_x and next_x + self.size <= paddle.x + paddle.length:
+            if paddle.x <= next_x + self.size and next_x <= paddle.x + paddle.length:
                 self.reflect_ball(paddle, paddle_side)
                 return True
         return False

@@ -89,7 +89,7 @@ function drawBall(obj) {
 }
 function drawPaddle(obj) {
     ctx.beginPath();
-    ctx.rect(obj.x, obj.y, obj.length, obj.thickness);
+    ctx.rect(obj.x, obj.y, obj.horizontal, obj.vertical);
     ctx.fillStyle = '#808080FF';
     ctx.fill();
     ctx.closePath();
@@ -105,9 +105,9 @@ function updateGameObjects(data) {
     //
     drawBall(data.ball);
     // // 右
-    // drawPaddle(data.right_paddle);
+    drawPaddle(data.right_paddle);
     // // 左
-    // drawPaddle(data.left_paddle);
+    drawPaddle(data.left_paddle);
     // 上
     drawPaddle(data.upper_paddle);
     //下
