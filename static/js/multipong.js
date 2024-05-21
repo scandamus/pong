@@ -101,13 +101,13 @@ function updateGameObjects(data) {
     // 四隅の枠を生成
     drawCornerLine(15, 15*8);
     // スコア
-    drawScore(data.left_paddle, data.right_paddle);
-
-    drawBall(data.ball);
-    // 右
-    drawPaddle(data.right_paddle);
-    // 左
-    drawPaddle(data.left_paddle);
+    // drawScore(data.left_paddle, data.right_paddle);
+    //
+    // drawBall(data.ball);
+    // // 右
+    // drawPaddle(data.right_paddle);
+    // // 左
+    // drawPaddle(data.left_paddle);
     // 上
     drawPaddle(data.upper_paddle);
     //下
@@ -162,7 +162,7 @@ pongSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         // document.querySelector('#pong-log').value += (data.message + '\n');
         console.log('received_data -> ', data);
-        console.log('RIGHT_PADDLE: ', data.right_paddle.score, '  LEFT_PADDLE: ', data.left_paddle.score, 'UPPER_PADDLE: ', data.upper_paddle.score, '  LOWER_PADDLE: ', data.lower_paddle.score);
+        // console.log('RIGHT_PADDLE: ', data.right_paddle.score, '  LEFT_PADDLE: ', data.left_paddle.score, 'UPPER_PADDLE: ', data.upper_paddle.score, '  LOWER_PADDLE: ', data.lower_paddle.score);
         updateGameObjects(data);
     } catch (error) {
         console.error('Error parsing message data:', error);
