@@ -3,9 +3,9 @@ import asyncio
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from datetime import datetime as dt
-from .game_logic import Paddle, Ball
+from .game_logic import Block, Paddle, Ball
 from .consts import (CANVAS_WIDTH, CANVAS_HEIGHT, PADDLE_LENGTH, PADDLE_THICKNESS, PADDING,
-                     BALL_SIZE, CANVAS_WIDTH_MULTI, CANVAS_HEIGHT_MULTI)
+                     BALL_SIZE, CANVAS_WIDTH_MULTI, CANVAS_HEIGHT_MULTI, CORNER_BLOCK_THICKNESS, CORNER_BLOCK_SIZE)
 
 import logging
 
@@ -110,7 +110,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         try:
             while self.game_continue:
                 #                await asyncio.sleep(0.05)  # 50ミリ秒待機
-                await asyncio.sleep(1/60)  # 60Hz
+                await asyncio.sleep(1 / 60)  # 60Hz
                 self.game_continue = await self.update_ball_and_send_data()
                 if not self.game_continue:
                     await self.channel_layer.group_send(self.room_group_name, {
@@ -184,6 +184,40 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
     lower_paddle = Paddle((CANVAS_WIDTH_MULTI / 2) - (PADDLE_LENGTH / 2), CANVAS_HEIGHT_MULTI - PADDLE_THICKNESS,
                           PADDLE_LENGTH, PADDLE_THICKNESS, 'horizontal')
     ball = Ball(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2, BALL_SIZE)
+    # 1.左上横
+    wall_top_left_horizontal = Block(CORNER_BLOCK_THICKNESS, 0, CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS,
+                                     CORNER_BLOCK_THICKNESS, 'horizontal', 'UPPER')
+    # 2.左上縦
+    wall_top_left_vertical = Block(0, CORNER_BLOCK_THICKNESS, CORNER_BLOCK_THICKNESS,
+                                   CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS, 'vertical', 'LEFT')
+    # 3.右上横
+    wall_top_right_horizontal = Block(CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE, 0,
+                                      CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS, CORNER_BLOCK_THICKNESS,
+                                      'horizontal', 'UPPER')
+    # 4.右上縦
+    wall_top_right_vertical = Block(CANVAS_WIDTH_MULTI - CORNER_BLOCK_THICKNESS, CORNER_BLOCK_THICKNESS,
+                                    CORNER_BLOCK_THICKNESS, CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS,
+                                    'vertical', 'RIGHT')
+    # 5.左下横
+    wall_bottom_left_horizontal = Block(CORNER_BLOCK_THICKNESS, CANVAS_HEIGHT_MULTI - CORNER_BLOCK_THICKNESS,
+                                        CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS, CORNER_BLOCK_THICKNESS,
+                                        'horizontal', 'LOWER')
+    # 6.左下縦
+    wall_bottom_left_vertical = Block(0, CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE, CORNER_BLOCK_THICKNESS,
+                                      CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS, 'vertical', 'LEFT')
+    # 7.右下横
+    wall_bottom_right_horizontal = Block(CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE,
+                                         CANVAS_HEIGHT_MULTI - CORNER_BLOCK_THICKNESS,
+                                         CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS, CORNER_BLOCK_THICKNESS,
+                                         'horizontal', 'LOWER')
+    # 8.右下縦
+    wall_bottom_right_vertical = Block(CANVAS_WIDTH_MULTI - CORNER_BLOCK_THICKNESS,
+                                       CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE,
+                                       CORNER_BLOCK_THICKNESS, CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS,
+                                       'vertical', 'RIGHT')
+    walls = {wall_top_left_horizontal, wall_top_left_vertical, wall_top_right_horizontal,
+             wall_top_right_vertical, wall_bottom_left_horizontal, wall_bottom_left_vertical,
+             wall_bottom_right_horizontal, wall_bottom_right_vertical}
     # TODO:paddleのスコアの設定方法をいい感じに変える
     right_paddle.score = 10
     left_paddle.score = 10
@@ -293,7 +327,7 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
         try:
             while self.game_continue:
                 #                await asyncio.sleep(0.05)  # 50ミリ秒待機
-                await asyncio.sleep(1/60)  # 60Hz
+                await asyncio.sleep(1 / 60)  # 60Hz
                 self.game_continue = await self.update_ball_and_send_data()
                 if not self.game_continue:
                     await self.channel_layer.group_send(self.room_group_name, {
@@ -311,7 +345,8 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
         self.left_paddle.move_for_multiple()
         self.upper_paddle.move_for_multiple()
         self.lower_paddle.move_for_multiple()
-        game_continue = self.ball.move_for_multiple(self.right_paddle, self.left_paddle, self.upper_paddle, self.lower_paddle)
+        game_continue = self.ball.move_for_multiple(self.right_paddle, self.left_paddle, self.upper_paddle,
+                                                    self.lower_paddle, self.walls)
         # game_continue = True
         await self.channel_layer.group_send(self.room_group_name, {
             "type": "ball.message",
