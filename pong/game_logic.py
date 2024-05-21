@@ -23,9 +23,8 @@ def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier, ori
         }
 
 
-class Paddle:
-    # 第三引数:horizontal->横の長さ   第四引数:vertical->縦の長さ   第五引数:orientation->paddleの移動方向
-    def __init__(self, x, y, horizontal, vertical, orientation='vertical'):
+class Block:
+    def __init__(self, x, y, horizontal, vertical, orientation='vertical', position=None):
         self.x = x
         self.y = y
         # 垂直方向のpaddleは厚さが横,長さが縦
@@ -37,9 +36,16 @@ class Paddle:
         elif orientation == 'horizontal':
             self.thickness = vertical
             self.length = horizontal
+        self.orientation = orientation
+        self.position = position
+
+
+class Paddle(Block):
+    # 第三引数:horizontal->横の長さ   第四引数:vertical->縦の長さ   第五引数:orientation->paddleの移動方向
+    def __init__(self, x, y, horizontal, vertical, orientation='vertical'):
+        super().__init__(x, y, horizontal, vertical, orientation)
         self.speed = 0
         self.score = 0
-        self.orientation = orientation
 
     def move(self):
         self.y += self.speed
@@ -51,24 +57,24 @@ class Paddle:
     def move_for_multiple(self):
         if self.orientation == 'horizontal':
             self.x += self.speed
-            if self.x < 0:
-                self.x = 0
-            elif CANVAS_HEIGHT_MULTI < self.x + self.length:
-                self.x = CANVAS_HEIGHT_MULTI - self.length
-            # if self.x < CORNER_BLOCK_SIZE:
-            #     self.x = CORNER_BLOCK_SIZE
-            # elif CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE < self.x + self.length:
-            #     self.x = CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE - self.length
+            # if self.x < 0:
+            #     self.x = 0
+            # elif CANVAS_HEIGHT_MULTI < self.x + self.length:
+            #     self.x = CANVAS_HEIGHT_MULTI - self.length
+            if self.x < CORNER_BLOCK_SIZE:
+                self.x = CORNER_BLOCK_SIZE
+            elif CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE < self.x + self.length:
+                self.x = CANVAS_WIDTH_MULTI - CORNER_BLOCK_SIZE - self.length
         elif self.orientation == 'vertical':
             self.y += self.speed
-            if self.y < 0:
-                self.y = 0
-            elif self.y + self.length > CANVAS_HEIGHT_MULTI:
-                self.y = CANVAS_HEIGHT_MULTI - self.length
-            # if self.y < CORNER_BLOCK_SIZE:
-            #     self.y = CORNER_BLOCK_SIZE
-            # elif CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE < self.y + self.thickness:
-            #     self.y = CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE - self.thickness
+            # if self.y < 0:
+            #     self.y = 0
+            # elif self.y + self.length > CANVAS_HEIGHT_MULTI:
+            #     self.y = CANVAS_HEIGHT_MULTI - self.length
+            if self.y < CORNER_BLOCK_SIZE:
+                self.y = CORNER_BLOCK_SIZE
+            elif CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE < self.y + self.length:
+                self.y = CANVAS_HEIGHT_MULTI - CORNER_BLOCK_SIZE - self.length
 
     def increment_score(self):
         self.score += 1
@@ -173,25 +179,25 @@ class Ball:
             self.x += self.dx
         return True
 
-    def collision_detection(self, paddle, paddle_side):
+    def collision_detection(self, obj, obj_side):
         next_x = self.x + self.dx
         next_y = self.y + self.dy
 
-        if paddle_side == "RIGHT" and paddle.x <= next_x + self.size <= paddle.x + paddle.thickness:
-            if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.length:
-                self.reflect_ball(paddle, paddle_side)
+        if obj_side == "RIGHT" and obj.x <= next_x + self.size <= obj.x + obj.thickness:
+            if obj.y <= next_y + self.size and next_y <= obj.y + obj.length:
+                self.reflect_ball(obj, obj_side)
                 return True
-        elif paddle_side == "LEFT" and paddle.x <= next_x <= paddle.x + paddle.thickness:
-            if paddle.y <= next_y + self.size and next_y <= paddle.y + paddle.length:
-                self.reflect_ball(paddle, paddle_side)
+        elif obj_side == "LEFT" and obj.x <= next_x <= obj.x + obj.thickness:
+            if obj.y <= next_y + self.size and next_y <= obj.y + obj.length:
+                self.reflect_ball(obj, obj_side)
                 return True
-        elif paddle_side == "UPPER" and paddle.y <= next_y <= paddle.y + paddle.thickness:
-            if paddle.x <= next_x + self.size and next_x <= paddle.x + paddle.length:
-                self.reflect_ball(paddle, paddle_side)
+        elif obj_side == "UPPER" and obj.y <= next_y <= obj.y + obj.thickness:
+            if obj.x <= next_x + self.size and next_x <= obj.x + obj.length:
+                self.reflect_ball(obj, obj_side)
                 return True
-        elif paddle_side == "LOWER" and paddle.y <= next_y + self.size <= paddle.y + paddle.thickness:
-            if paddle.x <= next_x + self.size and next_x <= paddle.x + paddle.length:
-                self.reflect_ball(paddle, paddle_side)
+        elif obj_side == "LOWER" and obj.y <= next_y + self.size <= obj.y + obj.thickness:
+            if obj.x <= next_x + self.size and next_x <= obj.x + obj.length:
+                self.reflect_ball(obj, obj_side)
                 return True
         return False
 
