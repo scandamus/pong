@@ -64,7 +64,7 @@ function drawBall(obj) {
 }
 function drawPaddle(obj) {
     ctx.beginPath();
-    ctx.rect(obj.x, obj.y, obj.thickness, obj.length);
+    ctx.rect(obj.x, obj.y, obj.horizontal, obj.vertical);
     ctx.fillStyle = '#808080FF';
     ctx.fill();
     ctx.closePath();
@@ -86,7 +86,7 @@ function updateGameObjects(data) {
 
     if (!data.game_status) {
         console.log("Game Over");
-        alert('GAME OVER');
+        // alert('GAME OVER');
         // ここでゲームをリセットする処理を追加するか、ページをリロードする
         // document.location.reload();
     }
