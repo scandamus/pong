@@ -43,35 +43,35 @@ function drawCornerLine(line_width, size) {
     ctx.lineWidth = line_width;
     ctx.lineJoin = 'miter';
     ctx.lineCap = 'butt'
-    ctx.strokeStyle = '#808080FF';
+    ctx.strokeStyle = 'red';
     const offset = line_width / 2;
 
     // 左上
     ctx.beginPath();
-    ctx.moveTo(size + offset, offset);
+    ctx.moveTo(size, offset);
     ctx.lineTo(offset, offset);
-    ctx.lineTo(offset, size + offset);
+    ctx.lineTo(offset, size);
     ctx.stroke();
 
     // 右上
     ctx.beginPath();
-    ctx.moveTo(canvas.width - size - offset, offset);
+    ctx.moveTo(canvas.width - size, offset);
     ctx.lineTo(canvas.width - offset, offset);
-    ctx.lineTo(canvas.width - offset, size + offset);
+    ctx.lineTo(canvas.width - offset, size);
     ctx.stroke();
 
     // 左下
     ctx.beginPath();
-    ctx.moveTo(size + offset, canvas.height - offset);
+    ctx.moveTo(size, canvas.height - offset);
     ctx.lineTo(offset, canvas.height - offset);
-    ctx.lineTo(offset, canvas.height - size - offset);
+    ctx.lineTo(offset, canvas.height - size);
     ctx.stroke();
 
     // 右下
     ctx.beginPath();
-    ctx.moveTo(canvas.width - size - offset, canvas.height - offset);
+    ctx.moveTo(canvas.width - size, canvas.height - offset);
     ctx.lineTo(canvas.width - offset, canvas.height - offset);
-    ctx.lineTo(canvas.width - offset, canvas.height - size - offset);
+    ctx.lineTo(canvas.width - offset, canvas.height - size);
     ctx.stroke();
 }
 function drawScore(left_paddle, right_paddle) {
