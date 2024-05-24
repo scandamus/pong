@@ -78,7 +78,7 @@ class Paddle(Block):
 
 class Ball:
     def __init__(self, x, y, size):
-        tmp = get_ball_direction_and_random_speed(random.randint(30, 45), random.choice((-1, 1)))
+        tmp = get_ball_direction_and_random_speed(random.randint(0, 45), random.choice((-1, 1)))
         self.x = x
         self.y = y
         self.dx = tmp['dx']
@@ -87,7 +87,7 @@ class Ball:
         self.flag = True  # 衝突判定を True:する False:しない
 
     def reset(self, x, y):
-        tmp = get_ball_direction_and_random_speed(random.randint(30, 45), random.choice((-1, 1)))
+        tmp = get_ball_direction_and_random_speed(random.randint(0, 45), random.choice((-1, 1)))
         self.x = x
         self.y = y
         self.dx = tmp['dx']
@@ -165,18 +165,27 @@ class Ball:
             lower_paddle.decrement_score()
             self.reset(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2)
             return lower_paddle.score > 0
+
         for wall in walls:
             collision_detected = self.collision_detection(wall, wall.position)
             if collision_detected == "collision_front":
-                self.reflect_ball(wall, wall.position)
+                tmp = random.uniform(0, 0.5)
                 # 座標調整
                 if wall.position == "RIGHT":
+                    tmp = tmp if self.y > 0 else -tmp
+                    self.dx = -self.dx + tmp
                     self.x = wall.x - self.size
                 elif wall.position == "LEFT":
+                    tmp = tmp if self.y > 0 else -tmp
+                    self.dx = -self.dx + tmp
                     self.x = wall.thickness
                 elif wall.position == "UPPER":
+                    tmp = tmp if self.x > 0 else -tmp
+                    self.dy = -self.dy + tmp
                     self.y = wall.y + wall.thickness
                 elif wall.position == "LOWER":
+                    tmp = tmp if self.x > 0 else -tmp
+                    self.dy = -self.dy
                     self.y = wall.y - wall.thickness
                 return True
             elif collision_detected == "collision_side":

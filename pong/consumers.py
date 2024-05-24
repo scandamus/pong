@@ -18,7 +18,7 @@ class PongConsumer(AsyncWebsocketConsumer):
     right_paddle = Paddle(CANVAS_WIDTH - PADDLE_THICKNESS - PADDING, (CANVAS_HEIGHT - PADDLE_LENGTH) / 2,
                           PADDLE_THICKNESS, PADDLE_LENGTH)
     left_paddle = Paddle(PADDING, (CANVAS_HEIGHT - PADDLE_LENGTH) / 2, PADDLE_THICKNESS, PADDLE_LENGTH)
-    ball = Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, BALL_SIZE)
+    ball = Ball(CANVAS_WIDTH / 2 - BALL_SIZE / 2, CANVAS_HEIGHT / 2 - BALL_SIZE / 2, BALL_SIZE)
     ready = False
     game_continue = False
 
@@ -183,7 +183,7 @@ class MultiPongConsumer(AsyncWebsocketConsumer):
                           PADDLE_THICKNESS, 'horizontal')
     lower_paddle = Paddle((CANVAS_WIDTH_MULTI / 2) - (PADDLE_LENGTH / 2), CANVAS_HEIGHT_MULTI - PADDLE_THICKNESS,
                           PADDLE_LENGTH, PADDLE_THICKNESS, 'horizontal')
-    ball = Ball(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2, BALL_SIZE)
+    ball = Ball(CANVAS_WIDTH_MULTI / 2 - BALL_SIZE / 2, CANVAS_HEIGHT_MULTI / 2 - BALL_SIZE / 2, BALL_SIZE)
     # 1.左上横
     wall_top_left_horizontal = Block(CORNER_BLOCK_THICKNESS, 0, CORNER_BLOCK_SIZE - CORNER_BLOCK_THICKNESS,
                                      CORNER_BLOCK_THICKNESS, 'horizontal', 'UPPER')
