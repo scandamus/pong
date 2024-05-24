@@ -6,7 +6,7 @@ from .consts import (CANVAS_WIDTH, CANVAS_HEIGHT, REFLECTION_ANGLE, CORNER_BLOCK
 
 def get_ball_direction_and_random_speed(angle_degrees, direction_multiplier, orientation='vertical'):
     angle_radians = angle_degrees * (math.pi / 180)
-    speed = random.randint(4, 5)
+    speed = random.randint(10, 10)
     if orientation == 'vertical':
         cos_value = math.cos(angle_radians)
         sin_value = math.sin(angle_radians)
@@ -117,10 +117,17 @@ class Ball:
             self.reset(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
             return paddle2.score < 10
         # 衝突判定がTrueの場合はpaddleにballを接触させるように
-        if collision_with_paddle1:
+        # x座標の操作
+        if collision_with_paddle1 == "collision_front":
             self.x = paddle1.x - self.size
-        elif collision_with_paddle2:
+        elif collision_with_paddle1 == "collision_side":
+            self.dy = -self.dy
+            self.x += self.dx
+        elif collision_with_paddle2 == "collision_front":
             self.x = paddle2.x + paddle2.thickness
+        elif collision_with_paddle2 == "collision_side":
+            self.dy = -self.dy
+            self.x += self.dx
         else:
             self.x += self.dx
         # y座標の操作
@@ -132,6 +139,10 @@ class Ball:
             self.dy -= self.dy
         else:
             self.y += self.dy
+        if (self.y == 0 or self.y == CANVAS_HEIGHT_MULTI - self.size) and self.dy == 0:
+            tmp = get_ball_direction_and_random_speed(random.randint(30, 45), random.choice((-1, 1)))
+            self.dx = tmp["dx"]
+            self.dy = tmp["dy"]
         return True
 
     def move_for_multiple(self, right_paddle, left_paddle, upper_paddle, lower_paddle, walls):
@@ -152,44 +163,93 @@ class Ball:
             lower_paddle.decrement_score()
             self.reset(CANVAS_WIDTH_MULTI / 2, CANVAS_HEIGHT_MULTI / 2)
             return lower_paddle.score > 0
-        for wall in walls:
-            self.collision_detection(wall, wall.position)
-        # y座標の操作
-        if self.collision_detection(upper_paddle, "UPPER"):
-            self.y = upper_paddle.y + upper_paddle.thickness
-        elif self.collision_detection(lower_paddle, "LOWER"):
-            self.y = lower_paddle.y - self.size
-        else:
-            self.y += self.dy
-        # x座標の操作
-        if self.collision_detection(right_paddle, "RIGHT"):
-            self.x = right_paddle.x - self.size
-        elif self.collision_detection(left_paddle, "LEFT"):
-            self.x = left_paddle.thickness
-        else:
+        if not self.flag:
             self.x += self.dx
+            self.y += self.dy
+            return True
+        for wall in walls:
+            collision_detected = self.collision_detection(wall, wall.position)
+            if collision_detected:
+                self.x += self.dx
+                self.y += self.dy
+                return True
+        # x座標の操作
+        collision_detected_right = self.collision_detection(right_paddle, "RIGHT")
+        if collision_detected_right == "collision_front":
+            self.x = right_paddle.x - self.size
+        elif collision_detected_right == "collision_side":
+            self.dy = -self.dy
+            self.x += self.dx
+        collision_detected_left = self.collision_detection(left_paddle, "LEFT")
+        if collision_detected_left == "collision_front":
+            self.x = left_paddle.thickness
+        elif collision_detected_left == "collision_side":
+            self.dy = -self.dy
+            self.x += self.dx
+        if not collision_detected_right and not collision_detected_left:
+            self.y += self.dy
+        # y座標の操作
+        collision_detected_upper = self.collision_detection(upper_paddle, "UPPER")
+        if collision_detected_upper == "collision_front":
+            self.y = upper_paddle.y + upper_paddle.thickness
+        elif collision_detected_upper == "collision_side":
+            self.dx -= self.dx
+            self.y += self.dy
+        collision_detected_lower = self.collision_detection(lower_paddle, "LOWER")
+        if collision_detected_lower == "collision_front":
+            self.y = lower_paddle.y - self.size
+        elif collision_detected_lower == "collision_side":
+            self.dx -= self.dx
+            self.y += self.dy
+        if not collision_detected_upper and not collision_detected_lower:
+            self.x += self.dx
+        if (self.y == 0 or self.y == CANVAS_HEIGHT_MULTI - self.size) and self.dy == 0:
+            tmp = get_ball_direction_and_random_speed(random.randint(30, 45), random.choice((-1, 1)))
+            self.dx = tmp["dx"]
+            self.dy = tmp["dy"]
         return True
 
     def collision_detection(self, obj, obj_side):
         next_x = self.x + self.dx
         next_y = self.y + self.dy
-        if obj_side == "RIGHT" and obj.x <= next_x + self.size <= obj.x + obj.thickness:
+        collision_type = False
+        if obj_side == "RIGHT" and obj.x <= next_x + self.size and next_x <= obj.x + obj.thickness:
             if obj.y <= next_y + self.size and next_y <= obj.y + obj.length:
-                self.reflect_ball(obj, obj_side)
-                return True
-        elif obj_side == "LEFT" and obj.x <= next_x <= obj.x + obj.thickness:
+                if self.x + self.size <= obj.x:
+                    self.reflect_ball(obj, obj_side)
+                    collision_type = "collision_front"
+                elif obj.x < self.x + self.size:
+                    self.flag = False
+                    collision_type = "collision_side"
+                return collision_type
+        elif obj_side == "LEFT" and obj.x <= next_x + self.size and next_x <= obj.x + obj.thickness:
             if obj.y <= next_y + self.size and next_y <= obj.y + obj.length:
-                self.reflect_ball(obj, obj_side)
-                return True
-        elif obj_side == "UPPER" and obj.y <= next_y <= obj.y + obj.thickness:
+                if obj.x + obj.thickness <= self.x:
+                    self.reflect_ball(obj, obj_side)
+                    collision_type = "collision_front"
+                elif self.x < obj.x:
+                    self.flag = False
+                    collision_type = "collision_side"
+                return collision_type
+        elif obj_side == "UPPER" and obj.y <= next_y + self.size and next_y <= obj.y + obj.thickness:
             if obj.x <= next_x + self.size and next_x <= obj.x + obj.length:
-                self.reflect_ball(obj, obj_side)
-                return True
-        elif obj_side == "LOWER" and obj.y <= next_y + self.size <= obj.y + obj.thickness:
+                if obj.y + obj.thickness <= self.y:
+                    self.reflect_ball(obj, obj_side)
+                    collision_type = "collision_front"
+                elif self.y < obj.y + obj.thickness:
+                    self.flag = False
+                    collision_type = "collision_side"
+                return collision_type
+        elif obj_side == "LOWER" and obj.y <= next_y + self.size and next_y <= obj.y + obj.thickness:
             if obj.x <= next_x + self.size and next_x <= obj.x + obj.length:
-                self.reflect_ball(obj, obj_side)
-                return True
-        return False
+                if self.y + self.size <= obj.y:
+                    self.reflect_ball(obj, obj_side)
+                    collision_type = "collision_front"
+                elif obj.y < self.y + self.size:
+                    self.flag = False
+                    collision_type = "collision_side"
+                return collision_type
+        return collision_type
 
     def reflect_ball(self, paddle, paddle_side):
         normalize = REFLECTION_ANGLE / (paddle.length / 2)
