@@ -141,7 +141,7 @@ class Ball:
             self.dy -= self.dy
         else:
             self.y += self.dy
-        if (self.y == 0 or self.y == CANVAS_HEIGHT_MULTI - self.size) and self.dy == 0:
+        if (self.y == 0 or self.y == CANVAS_HEIGHT - self.size) and self.dy == 0:
             tmp = get_ball_direction_and_random_speed(random.randint(30, 45), random.choice((-1, 1)))
             self.dx = tmp["dx"]
             self.dy = tmp["dy"]
